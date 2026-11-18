@@ -1,0 +1,3623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:;" />
+    <title>sNET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0f0f14;
+            --bg-2: #16161f;
+            --bg-3: #1e1e2a;
+            --bg-4: #26263a;
+            --accent: #7c5cff;
+            --accent-2: #00d4ff;
+            --text: #e8e8f0;
+            --text-dim: #8a8a9a;
+            --border: rgba(255, 255, 255, 0.07);
+            --danger: #e81123;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+            --brightness: 1;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            user-select: none;
+            filter: brightness(var(--brightness));
+        }
+
+        body { display: flex; flex-direction: column; }
+
+        .titlebar {
+            height: 36px;
+            background: var(--bg-2);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            -webkit-app-region: drag;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        .titlebar-logo {
+            position: absolute;
+            left: 16px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .incognito-badge {
+            position: absolute;
+            left: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-dim);
+            display: none;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            background: rgba(124, 92, 255, 0.12);
+            border: 1px solid rgba(124, 92, 255, 0.3);
+            border-radius: 999px;
+        }
+        body.incognito .incognito-badge { display: flex; }
+
+        .resource-monitor {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-right: 16px;
+            padding: 4px 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            -webkit-app-region: no-drag;
+        }
+        .res-item { display: flex; align-items: center; gap: 4px; }
+        .res-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); transition: background 0.3s ease; }
+        .res-label { color: var(--text-dim); }
+        .res-value { color: var(--text); min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+        .window-controls { display: flex; -webkit-app-region: no-drag; }
+        .win-btn {
+            width: 46px; height: 36px; background: transparent; border: none;
+            color: var(--text-dim); font-size: 14px; cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        .win-btn:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+        .win-btn.close:hover { background: var(--danger); color: white; }
+
+        .toolbar {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 14px; background: var(--bg-2);
+            border-bottom: 1px solid var(--border);
+        }
+        .nav-buttons, .extra-buttons { display: flex; gap: 4px; }
+        .nav-btn {
+            width: 36px; height: 36px; border-radius: 50%; border: none;
+            background: transparent; color: var(--text-dim); font-size: 17px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.25s var(--ease); position: relative;
+        }
+        .nav-btn:hover { background: var(--bg-3); color: var(--text); transform: scale(1.08); }
+        .nav-btn:active { transform: scale(0.94); }
+        .nav-btn:disabled { opacity: 0.3; cursor: default; }
+        .nav-btn:disabled:hover { background: transparent; transform: none; color: var(--text-dim); }
+        .nav-btn.active { color: var(--accent); background: rgba(124, 92, 255, 0.15); }
+        .badge {
+            position: absolute; top: 2px; right: 2px;
+            min-width: 16px; height: 16px; border-radius: 8px;
+            background: var(--accent); color: white; font-size: 10px;
+            font-weight: 700; display: flex; align-items: center; justify-content: center;
+            padding: 0 4px; pointer-events: none;
+        }
+        .badge.hidden { display: none; }
+
+        .url-bar-wrapper {
+            flex: 1; display: flex; align-items: center; gap: 8px;
+            background: var(--bg-3); border: 1px solid var(--border);
+            border-radius: 999px; padding: 0 16px; height: 40px;
+            transition: all 0.3s var(--ease);
+        }
+        .url-bar-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+            background: var(--bg-2);
+        }
+        .lock-icon { font-size: 12px; opacity: 0.6; }
+        #url-bar {
+            flex: 1; background: transparent; border: none; outline: none;
+            color: var(--text); font-size: 14px; font-family: inherit;
+        }
+        #url-bar::placeholder { color: var(--text-dim); }
+
+        .tab-bar {
+            display: flex; align-items: center; gap: 4px;
+            padding: 6px 10px; background: var(--bg-2);
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .tab-bar::-webkit-scrollbar { height: 0; }
+        .tab {
+            display: flex; align-items: center; gap: 8px;
+            padding: 6px 12px; min-width: 140px; max-width: 220px;
+            height: 32px; border-radius: 8px; background: var(--bg-3);
+            color: var(--text-dim); font-size: 13px; cursor: pointer;
+            transition: all 0.2s var(--ease); border: 1px solid transparent;
+        }
+        .tab:hover { background: var(--bg-4); color: var(--text); }
+        .tab.active { background: var(--bg-4); color: var(--text); border-color: rgba(124, 92, 255, 0.4); }
+        .tab.incognito-tab { border-color: rgba(124, 92, 255, 0.6); background: rgba(124, 92, 255, 0.08); }
+        .tab-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tab-close {
+            width: 18px; height: 18px; border-radius: 50%;
+            border: none; background: transparent; color: var(--text-dim);
+            font-size: 12px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center;
+            transition: all 0.15s var(--ease);
+        }
+        .tab-close:hover { background: rgba(232, 17, 35, 0.8); color: white; }
+        .new-tab-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            background: var(--bg-3); color: var(--text-dim); font-size: 18px;
+            cursor: pointer; transition: all 0.2s var(--ease); flex-shrink: 0;
+        }
+        .new-tab-btn:hover { background: var(--accent); color: white; }
+
+        .loading-bar { height: 2px; background: transparent; position: relative; overflow: hidden; }
+        .loading-bar.active::after {
+            content: ''; position: absolute; top: 0; left: 0;
+            height: 100%; width: 40%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            animation: loading 1.2s var(--ease) infinite;
+        }
+        @keyframes loading { 0% { left: -40%; } 100% { left: 100%; } }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; }
+
+        .sidebar {
+            width: 72px; background: var(--bg-2);
+            border-right: 1px solid var(--border);
+            display: flex; flex-direction: column; align-items: center;
+            padding: 16px 0; gap: 12px; overflow-y: auto; flex-shrink: 0;
+            transition: width 0.3s var(--ease); position: relative; z-index: 50;
+        }
+        .sidebar::-webkit-scrollbar { width: 0; }
+        .sidebar.expanded { width: 380px; align-items: stretch; padding: 16px 12px; }
+        .sidebar-icon {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.25s var(--ease);
+            position: relative; flex-shrink: 0; background: transparent;
+        }
+        .sidebar-icon:hover {
+            transform: scale(1.15); background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar-icon svg { width: 28px; height: 28px; object-fit: contain; }
+        .sidebar-icon img { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; }
+        .sidebar-shortcut {
+            width: 48px; height: 48px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.25s var(--ease);
+            position: relative; flex-shrink: 0; background: transparent; overflow: hidden;
+        }
+        .sidebar-shortcut:hover {
+            transform: scale(1.15); background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .sidebar-shortcut img { width: 32px; height: 32px; object-fit: contain; border-radius: 6px; }
+        .sidebar-shortcut .sb-fallback {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-shortcut .sb-remove {
+            position: absolute; top: 2px; right: 2px;
+            width: 16px; height: 16px; border-radius: 50%; border: none;
+            background: rgba(0,0,0,0.6); color: var(--text-dim); font-size: 9px;
+            cursor: pointer; display: none; align-items: center; justify-content: center;
+        }
+        .sidebar-shortcut:hover .sb-remove { display: flex; }
+        .sidebar-shortcut .sb-remove:hover { background: var(--danger); color: white; }
+        .sidebar-panel { display: none; flex-direction: column; height: 100%; width: 100%; overflow: hidden; }
+        .sidebar-panel.active { display: flex; }
+        .sidebar-panel-header {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 4px 12px; border-bottom: 1px solid var(--border);
+            margin-bottom: 8px; flex-shrink: 0;
+        }
+        .sidebar-panel-title {
+            flex: 1; font-size: 13px; font-weight: 600;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .sidebar-panel-btn {
+            width: 28px; height: 28px; border-radius: 6px; border: none;
+            background: transparent; color: var(--text-dim); font-size: 14px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.15s var(--ease); flex-shrink: 0;
+        }
+        .sidebar-panel-btn:hover { background: var(--bg-4); color: var(--text); }
+        .sidebar-panel-btn.close:hover { background: var(--danger); color: white; }
+        .sidebar-panel webview { flex: 1; width: 100%; border: none; border-radius: 8px; background: white; }
+        .sidebar:not(.expanded) .sidebar-panel { display: none !important; }
+        .sidebar.expanded .sidebar-icons-wrap { display: none; }
+        .sidebar-icons-wrap {
+            display: flex; flex-direction: column; align-items: center;
+            gap: 12px; width: 100%;
+        }
+
+        .content { flex: 1; position: relative; background: var(--bg); overflow: hidden; }
+
+        .bg-layer { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+        .bg-layer img, .bg-layer video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+        .bg-layer .bg-color { position: absolute; inset: 0; }
+
+        .webview-container { position: absolute; inset: 0; display: none; z-index: 1; }
+        .webview-container.active { display: block; }
+        .webview-container webview { width: 100%; height: 100%; border: none; }
+
+        .snet-page {
+            position: absolute;
+            inset: 0;
+            z-index: 999;
+            background: var(--bg);
+            display: none;
+            overflow-y: auto;
+            padding: 40px 60px;
+        }
+        .snet-page.active { display: block; }
+        .snet-page::-webkit-scrollbar { width: 10px; }
+        .snet-page::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 10px; }
+        .snet-page::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        .snet-inner { max-width: 920px; margin: 0 auto; }
+        .snet-page-title { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .snet-page-subtitle { font-size: 13px; color: var(--text-dim); margin-bottom: 32px; }
+
+        .settings-nav {
+            display: flex; gap: 4px; margin-bottom: 28px;
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .settings-nav::-webkit-scrollbar { height: 0; }
+        .settings-nav-btn {
+            padding: 12px 18px; background: transparent; border: none;
+            color: var(--text-dim); font-size: 14px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
+            transition: all 0.2s var(--ease); white-space: nowrap;
+        }
+        .settings-nav-btn:hover { color: var(--text); }
+        .settings-nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .settings-tab { display: none; }
+        .settings-tab.active { display: block; }
+        .settings-group { margin-bottom: 32px; }
+        .settings-group-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-dim);
+            margin-bottom: 12px; padding: 0 2px;
+        }
+        .settings-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 18px; background: var(--bg-2);
+            border: 1px solid var(--border); border-radius: 10px;
+            margin-bottom: 8px; gap: 16px;
+        }
+        .settings-row-label { font-size: 14px; color: var(--text); flex: 1; min-width: 0; }
+        .settings-row-label small {
+            display: block; font-size: 12px; color: var(--text-dim);
+            margin-top: 3px; font-weight: 400; word-break: break-all;
+        }
+        .settings-input, .settings-select {
+            background: var(--bg-3); border: 1px solid var(--border);
+            border-radius: 8px; padding: 9px 14px; color: var(--text);
+            font-size: 13px; font-family: inherit; outline: none;
+            min-width: 180px; transition: all 0.2s var(--ease);
+        }
+        .settings-input:focus, .settings-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
+        }
+        .settings-input.color-input { width: 60px; min-width: 60px; height: 38px; padding: 2px; cursor: pointer; }
+        .settings-color-wrap { display: flex; align-items: center; gap: 10px; }
+        .settings-color-hex { width: 100px; min-width: 100px; text-align: center; font-family: monospace; text-transform: uppercase; }
+        .settings-range { width: 220px; accent-color: var(--accent); cursor: pointer; }
+        .settings-range-value { min-width: 48px; text-align: right; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .btn-primary {
+            padding: 9px 18px; border-radius: 8px; border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white; font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer; transition: all 0.2s var(--ease);
+        }
+        .btn-primary:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-secondary {
+            padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg-3); color: var(--text); font-size: 13px;
+            font-weight: 600; font-family: inherit; cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        .btn-secondary:hover { background: var(--bg-4); }
+        .btn-danger {
+            padding: 9px 18px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--bg-3); color: var(--text); font-size: 13px;
+            font-weight: 600; font-family: inherit; cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        .btn-danger:hover { background: var(--danger); color: white; border-color: var(--danger); }
+        .btn-small {
+            padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--bg-4); color: var(--text); font-size: 12px;
+            font-weight: 600; font-family: inherit; cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        .btn-small:hover { background: var(--accent); border-color: var(--accent); color: white; }
+        .btn-small.danger:hover { background: var(--danger); border-color: var(--danger); }
+        .toggle {
+            position: relative; width: 40px; height: 22px;
+            background: var(--bg-4); border-radius: 11px; cursor: pointer;
+            transition: background 0.25s var(--ease); flex-shrink: 0;
+        }
+        .toggle::after {
+            content: ''; position: absolute; top: 2px; left: 2px;
+            width: 18px; height: 18px; background: white; border-radius: 50%;
+            transition: transform 0.25s var(--ease);
+        }
+        .toggle.on { background: var(--accent); }
+        .toggle.on::after { transform: translateX(18px); }
+
+        .page-header {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 32px; gap: 16px; flex-wrap: wrap;
+        }
+        .page-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+        .history-search-wrap { position: relative; margin-bottom: 20px; }
+        .history-search {
+            width: 100%; padding: 11px 16px 11px 42px;
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text); font-size: 14px;
+            font-family: inherit; outline: none; transition: all 0.2s var(--ease);
+        }
+        .history-search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
+        }
+        .history-search-icon {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            font-size: 14px; color: var(--text-dim); pointer-events: none;
+        }
+        .history-date-group { margin-bottom: 24px; }
+        .history-date-title {
+            font-size: 12px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--text-dim);
+            margin-bottom: 10px; padding: 0 2px;
+        }
+        .history-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 12px 14px; border-radius: 10px; cursor: pointer;
+            transition: all 0.15s var(--ease); margin-bottom: 4px;
+            background: var(--bg-2); border: 1px solid transparent;
+        }
+        .history-item:hover { background: var(--bg-3); border-color: var(--border); }
+        .history-item:hover .history-remove { display: flex; }
+        .history-icon {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--bg-3); display: flex; align-items: center;
+            justify-content: center; font-size: 13px; flex-shrink: 0;
+        }
+        .history-content { flex: 1; min-width: 0; }
+        .history-title {
+            font-size: 14px; color: var(--text);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-url {
+            font-size: 12px; color: var(--text-dim);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .history-time { font-size: 11px; color: var(--text-dim); flex-shrink: 0; }
+        .history-remove {
+            width: 24px; height: 24px; border-radius: 6px; border: none;
+            background: transparent; color: var(--text-dim); font-size: 12px;
+            cursor: pointer; display: none; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: all 0.15s var(--ease);
+        }
+        .history-remove:hover { background: var(--danger); color: white; }
+
+        .downloads-filters {
+            display: flex; gap: 4px; margin-bottom: 20px;
+            border-bottom: 1px solid var(--border); overflow-x: auto;
+        }
+        .downloads-filters::-webkit-scrollbar { height: 0; }
+        .filter-btn {
+            padding: 11px 16px; background: transparent; border: none;
+            color: var(--text-dim); font-size: 13px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            border-bottom: 2px solid transparent; margin-bottom: -1px;
+            transition: all 0.2s var(--ease); white-space: nowrap;
+        }
+        .filter-btn:hover { color: var(--text); }
+        .filter-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        .download-item-page {
+            padding: 16px 18px; background: var(--bg-2);
+            border: 1px solid var(--border); border-radius: 10px;
+            margin-bottom: 10px; transition: all 0.2s var(--ease);
+        }
+        .download-item-page:hover { border-color: rgba(124,92,255,0.3); }
+        .download-page-row {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px; margin-bottom: 10px;
+        }
+        .download-file-wrap { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+        .download-file-icon {
+            width: 36px; height: 36px; border-radius: 8px; background: var(--bg-3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .download-page-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .download-page-path { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+        .download-page-size { font-size: 12px; color: var(--text-dim); white-space: nowrap; flex-shrink: 0; }
+        .download-page-bar { height: 5px; background: var(--bg-4); border-radius: 3px; overflow: hidden; margin-bottom: 10px; }
+        .download-page-bar-fill {
+            height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            border-radius: 3px; width: 0%; transition: width 0.3s var(--ease);
+        }
+        .download-page-bar-fill.completed { background: var(--success); }
+        .download-page-bar-fill.cancelled { background: var(--danger); }
+        .download-page-status {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 12px; color: var(--text-dim); gap: 10px;
+        }
+        .download-status-label { display: flex; align-items: center; gap: 6px; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+        .status-dot.progressing { background: var(--accent); animation: pulse 1.5s infinite; }
+        .status-dot.completed { background: var(--success); }
+        .status-dot.cancelled { background: var(--danger); }
+        .status-dot.interrupted { background: var(--warning); }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .download-page-actions { display: flex; gap: 6px; }
+
+        .ext-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+        .ext-card {
+            padding: 18px; background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 12px; display: flex; gap: 14px; align-items: flex-start;
+            transition: all 0.2s var(--ease);
+        }
+        .ext-card:hover { border-color: rgba(124, 92, 255, 0.3); }
+        .ext-icon {
+            width: 48px; height: 48px; border-radius: 10px; background: var(--bg-3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .ext-info { flex: 1; min-width: 0; }
+        .ext-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+        .ext-desc { font-size: 12px; color: var(--text-dim); margin-bottom: 10px; }
+        .ext-badge-live {
+            display: inline-block; padding: 2px 8px; margin-left: 8px;
+            background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4);
+            color: var(--success); font-size: 10px; font-weight: 700;
+            border-radius: 999px; letter-spacing: 0.5px; vertical-align: middle;
+        }
+        .ext-badge-pending {
+            display: inline-block; padding: 2px 8px; margin-left: 8px;
+            background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4);
+            color: var(--warning); font-size: 10px; font-weight: 700;
+            border-radius: 999px; letter-spacing: 0.5px; vertical-align: middle;
+        }
+
+        .empty-page {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; text-align: center; padding: 80px 20px;
+            color: var(--text-dim); gap: 14px;
+        }
+        .empty-page-icon { font-size: 56px; opacity: 0.4; }
+        .empty-page-text { font-size: 15px; }
+
+        .newtab-page {
+            position: absolute;
+            inset: 0;
+            z-index: 998;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            overflow-y: auto;
+        }
+        .newtab-page.active { display: flex; }
+        .newtab-logo-container { text-align: center; margin-bottom: 40px; }
+        .newtab-logo-text {
+            font-size: 80px; font-weight: 800; margin: 0;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; letter-spacing: -2px;
+        }
+        .newtab-logo-subtitle { font-size: 16px; color: var(--text-dim); margin-top: 10px; letter-spacing: 1px; }
+        .newtab-search-container { width: 100%; max-width: 600px; padding: 0 20px; }
+        .newtab-search-box {
+            width: 100%; padding: 16px 24px; border-radius: 30px;
+            border: 1px solid var(--border); background-color: rgba(30,30,42,0.9);
+            color: var(--text); font-size: 18px; outline: none;
+            transition: all 0.3s ease; text-align: center; font-family: inherit;
+        }
+        .newtab-search-box:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.15);
+            background-color: rgba(22,22,31,0.95);
+        }
+        .newtab-search-box::placeholder { color: var(--text-dim); }
+        .newtab-shortcuts-section { max-width: 760px; margin: 36px auto 0; padding: 0 20px; width: 100%; }
+        .newtab-shortcuts-title {
+            font-size: 12px; font-weight: 600; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 1px;
+            margin-bottom: 14px; text-align: left; padding-left: 4px;
+        }
+        .newtab-shortcuts-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 12px;
+        }
+        .newtab-shortcut-card {
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 8px;
+            padding: 16px 8px 12px;
+            background: rgba(22,22,31,0.85);
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 14px; cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+            min-height: 100px;
+        }
+        .newtab-shortcut-card:hover {
+            background: rgba(30,30,42,0.95);
+            border-color: rgba(124, 92, 255, 0.5);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+        }
+        .newtab-shortcut-icon {
+            width: 40px; height: 40px; border-radius: 10px;
+            background: #1e1e2a; display: flex; align-items: center;
+            justify-content: center; overflow: hidden; flex-shrink: 0;
+        }
+        .newtab-shortcut-icon img { width: 30px; height: 30px; object-fit: contain; }
+        .newtab-shortcut-icon .fallback-letter {
+            font-size: 18px; font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .newtab-shortcut-name {
+            font-size: 11px; font-weight: 500; color: var(--text);
+            text-align: center; width: 100%;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            padding: 0 4px;
+        }
+        .newtab-shortcut-actions {
+            position: absolute; top: 6px; right: 6px;
+            display: none; gap: 3px;
+        }
+        .newtab-shortcut-card:hover .newtab-shortcut-actions { display: flex; }
+        .newtab-sc-action-btn {
+            width: 20px; height: 20px; border-radius: 50%;
+            border: none; background: rgba(0,0,0,0.6); color: var(--text-dim);
+            font-size: 10px; cursor: pointer; display: flex;
+            align-items: center; justify-content: center; transition: all 0.15s ease;
+        }
+        .newtab-sc-action-btn:hover { background: var(--accent); color: white; }
+        .newtab-sc-action-btn.del:hover { background: var(--danger); color: white; }
+        .newtab-sc-add-sidebar {
+            position: absolute; bottom: 6px; right: 6px;
+            width: 22px; height: 22px; border-radius: 50%; border: none;
+            background: rgba(124, 92, 255, 0.15); color: var(--accent);
+            font-size: 12px; cursor: pointer; display: none;
+            align-items: center; justify-content: center; transition: all 0.15s ease;
+        }
+        .newtab-shortcut-card:hover .newtab-sc-add-sidebar { display: flex; }
+        .newtab-sc-add-sidebar:hover { background: var(--accent); color: white; transform: scale(1.1); }
+        .newtab-sc-add-sidebar.added { background: var(--success); color: white; display: flex; }
+        .newtab-shortcut-add {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 6px; padding: 16px 8px;
+            background: transparent; border: 2px dashed var(--border);
+            border-radius: 14px; color: var(--text-dim); cursor: pointer;
+            transition: all 0.25s ease; min-height: 100px;
+            font-family: inherit; font-size: 11px;
+        }
+        .newtab-shortcut-add:hover {
+            border-color: var(--accent); color: var(--accent);
+            background: rgba(124, 92, 255, 0.05);
+        }
+        .newtab-shortcut-add .plus { font-size: 24px; line-height: 1; font-weight: 300; }
+        .newtab-show-more-wrap { display: flex; justify-content: center; margin-top: 16px; }
+        .newtab-show-more-btn {
+            padding: 8px 20px; border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(22,22,31,0.85); color: var(--text-dim);
+            font-size: 12px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s ease; font-family: inherit;
+        }
+        .newtab-show-more-btn:hover {
+            background: var(--bg-3); color: var(--text);
+            border-color: rgba(124, 92, 255, 0.4);
+        }
+        .newtab-incognito-info {
+            max-width: 600px; margin: 40px auto 0; padding: 24px;
+            background: rgba(124, 92, 255, 0.08);
+            border: 1px solid rgba(124, 92, 255, 0.25);
+            border-radius: 14px;
+        }
+        .newtab-incognito-title {
+            font-size: 18px; font-weight: 700; color: var(--text);
+            margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+        }
+        .newtab-incognito-item {
+            display: flex; gap: 12px; align-items: flex-start;
+            font-size: 13px; color: var(--text-dim); margin-bottom: 10px;
+        }
+        .newtab-incognito-item .icon { font-size: 16px; flex-shrink: 0; }
+
+        .split-container {
+            position: absolute; inset: 0; display: none;
+            flex-direction: row; background: var(--bg); z-index: 1000;
+        }
+        .split-container.active { display: flex; }
+        .split-pane {
+            flex: 1; position: relative; display: flex; flex-direction: column;
+            min-width: 0; border-right: 1px solid var(--border);
+        }
+        .split-pane:last-child { border-right: none; }
+        .split-pane-header {
+            height: 34px; background: var(--bg-2);
+            display: flex; align-items: center; gap: 8px;
+            padding: 0 10px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+        }
+        .split-pane-url {
+            flex: 1; height: 26px; background: var(--bg-3);
+            border: 1px solid var(--border); border-radius: 999px;
+            padding: 0 12px; color: var(--text); font-size: 12px;
+            font-family: inherit; outline: none;
+        }
+        .split-pane-btn {
+            width: 26px; height: 26px; border-radius: 6px; border: none;
+            background: transparent; color: var(--text-dim); font-size: 13px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+        }
+        .split-pane-btn:hover { background: var(--bg-4); color: var(--text); }
+        .split-pane-btn.close:hover { background: var(--danger); color: white; }
+        .split-pane webview { flex: 1; width: 100%; border: none; background: white; }
+        .split-resizer { width: 6px; background: var(--bg-2); cursor: col-resize; flex-shrink: 0; }
+        .split-resizer:hover { background: var(--accent); }
+
+        .shortcut-modal, .rename-modal, .incognito-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px); display: none;
+            align-items: center; justify-content: center; z-index: 2500;
+        }
+        .shortcut-modal.open, .rename-modal.open, .incognito-modal.open { display: flex; }
+        .modal-content {
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 16px; width: 440px; max-width: 92vw;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden;
+            animation: modalIn 0.3s var(--ease);
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-title { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .modal-close {
+            width: 32px; height: 32px; border-radius: 8px; border: none;
+            background: transparent; color: var(--text-dim); font-size: 16px; cursor: pointer;
+        }
+        .modal-close:hover { background: var(--bg-3); color: var(--text); }
+        .modal-body { padding: 22px 24px; display: flex; flex-direction: column; gap: 16px; }
+        .modal-field { display: flex; flex-direction: column; gap: 6px; }
+        .modal-field label {
+            font-size: 12px; font-weight: 600; color: var(--text-dim);
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .modal-field input {
+            background: var(--bg-3); border: 1px solid var(--border);
+            border-radius: 10px; padding: 11px 14px; color: var(--text);
+            font-family: inherit; font-size: 13px; outline: none;
+        }
+        .modal-field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15); }
+        .modal-footer {
+            padding: 16px 24px; border-top: 1px solid var(--border);
+            display: flex; gap: 10px; justify-content: flex-end;
+        }
+        .sm-preview {
+            display: flex; align-items: center; gap: 14px; padding: 14px;
+            background: var(--bg-3); border-radius: 12px; border: 1px solid var(--border);
+        }
+        .sm-preview-icon {
+            width: 44px; height: 44px; border-radius: 10px; background: var(--bg-4);
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .sm-preview-icon img { width: 32px; height: 32px; object-fit: contain; }
+        .sm-preview-icon .fallback-letter { font-size: 20px; font-weight: 700; color: var(--accent); }
+        .sm-preview-name { font-size: 14px; font-weight: 600; }
+        .sm-preview-url { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+        .incognito-info-list { display: flex; flex-direction: column; gap: 14px; }
+        .incognito-info-item { display: flex; gap: 12px; align-items: flex-start; font-size: 13px; color: var(--text); }
+        .incognito-info-item .icon { font-size: 18px; flex-shrink: 0; }
+        .incognito-warning {
+            padding: 14px; background: rgba(124, 92, 255, 0.08);
+            border: 1px solid rgba(124, 92, 255, 0.25);
+            border-radius: 10px; font-size: 13px; color: var(--text); line-height: 1.6;
+        }
+
+        .menu-dropdown {
+            position: fixed; top: 90px; right: 14px;
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 6px; min-width: 220px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            opacity: 0; transform: translateY(-8px); pointer-events: none;
+            transition: all 0.2s var(--ease); z-index: 1500;
+        }
+        .menu-dropdown.open { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .menu-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 6px; font-size: 13px;
+            color: var(--text); cursor: pointer; transition: background 0.15s var(--ease);
+        }
+        .menu-item:hover { background: var(--bg-3); }
+        .menu-item-icon { font-size: 14px; opacity: 0.7; width: 18px; text-align: center; }
+        .menu-item kbd {
+            margin-left: auto; font-size: 10px; color: var(--text-dim);
+            font-family: inherit; background: var(--bg-3);
+            padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);
+        }
+        .menu-divider { height: 1px; background: var(--border); margin: 6px 0; }
+
+        .task-manager-modal {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(6px); display: none;
+            align-items: center; justify-content: center; z-index: 2000;
+        }
+        .task-manager-modal.open { display: flex; }
+        .tm-content {
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 16px; width: 500px; max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6); overflow: hidden;
+            animation: modalIn 0.3s var(--ease);
+        }
+        .tm-header {
+            padding: 20px 24px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .tm-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        .tm-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .tm-stat {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; background: var(--bg-3); border-radius: 12px;
+        }
+        .tm-stat-label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .tm-stat-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+        .tm-progress { height: 6px; background: var(--bg-4); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .tm-progress-fill { height: 100%; border-radius: 3px; transition: width 0.5s var(--ease), background 0.3s; }
+        .tm-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; }
+
+        .download-toast {
+            position: fixed; bottom: 24px; right: 24px;
+            background: var(--bg-2); border: 1px solid var(--border);
+            border-radius: 12px; padding: 14px 18px;
+            min-width: 320px; max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            z-index: 3000; display: flex; align-items: center; gap: 12px;
+            animation: toastIn 0.3s var(--ease);
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .download-toast-icon {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: var(--success); display: flex; align-items: center;
+            justify-content: center; font-size: 18px; color: white; flex-shrink: 0;
+        }
+        .download-toast-info { flex: 1; min-width: 0; }
+        .download-toast-title { font-size: 13px; font-weight: 600; }
+        .download-toast-name { font-size: 11px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .download-toast-close {
+            width: 24px; height: 24px; border-radius: 6px; border: none;
+            background: transparent; color: var(--text-dim); font-size: 14px;
+            cursor: pointer; flex-shrink: 0;
+        }
+        .download-toast-close:hover { background: var(--bg-3); color: var(--text); }
+
+        /* ===== Site Blocker ===== */
+        .adblock-lock-screen {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; padding: 80px 20px;
+            gap: 18px; max-width: 400px; margin: 0 auto;
+        }
+        .adblock-lock-icon {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; color: white;
+        }
+        .adblock-lock-title {
+            font-size: 20px; font-weight: 700; text-align: center;
+        }
+        .adblock-lock-subtitle {
+            font-size: 13px; color: var(--text-dim); text-align: center;
+            margin-bottom: 12px; line-height: 1.6;
+        }
+        .adblock-password-input {
+            width: 100%; padding: 12px 16px;
+            background: var(--bg-3); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text);
+            font-size: 14px; font-family: inherit; outline: none;
+            text-align: center; letter-spacing: 2px;
+        }
+        .adblock-password-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,92,255,0.15);
+        }
+        .adblock-btn {
+            width: 100%; padding: 11px;
+            border-radius: 10px; border: none;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: white; font-size: 14px; font-weight: 600;
+            font-family: inherit; cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+        .adblock-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+        .adblock-error {
+            font-size: 12px; color: var(--danger); text-align: center;
+            min-height: 16px;
+        }
+        .adblock-site-input-wrap {
+            display: flex; gap: 8px; margin-bottom: 16px;
+        }
+        .adblock-site-input {
+            flex: 1; padding: 11px 14px;
+            background: var(--bg-3); border: 1px solid var(--border);
+            border-radius: 10px; color: var(--text);
+            font-size: 14px; font-family: inherit; outline: none;
+        }
+        .adblock-site-input:focus { border-color: var(--accent); }
+        .adblock-site-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px 16px; background: var(--bg-2);
+            border: 1px solid var(--border); border-radius: 10px;
+            margin-bottom: 8px;
+        }
+        .adblock-site-icon {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: var(--bg-3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; flex-shrink: 0;
+        }
+        .adblock-site-url {
+            flex: 1; font-size: 14px; font-weight: 500;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .adblock-locked-overlay {
+            position: absolute; inset: 0; z-index: 1500;
+            background: var(--bg);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            gap: 18px;
+        }
+        .adblock-locked-overlay.active { display: flex; }
+        .adblock-locked-icon {
+            width: 80px; height: 80px; border-radius: 50%;
+            background: rgba(232, 17, 35, 0.15);
+            border: 2px solid rgba(232, 17, 35, 0.4);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px;
+        }
+        .adblock-locked-title {
+            font-size: 22px; font-weight: 700; text-align: center;
+        }
+        .adblock-locked-subtitle {
+            font-size: 14px; color: var(--text-dim); text-align: center;
+            max-width: 480px; line-height: 1.6;
+        }
+        .adblock-locked-url {
+            font-size: 13px; color: var(--accent);
+            background: var(--bg-3); padding: 8px 16px;
+            border-radius: 8px; border: 1px solid var(--border);
+            max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .adblock-unlock-wrap {
+            display: flex; flex-direction: column; gap: 10px;
+            width: 100%; max-width: 320px; margin-top: 12px;
+        }
+
+        /* ===== Right-click Context Menu ===== */
+        .ctx-menu {
+            position: fixed;
+            min-width: 240px;
+            max-width: 340px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+            z-index: 99999;
+            display: none;
+            opacity: 0;
+            transform: scale(0.96);
+            transform-origin: top left;
+            transition: opacity 0.12s var(--ease), transform 0.12s var(--ease);
+            backdrop-filter: blur(8px);
+        }
+        .ctx-menu.open {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+        .ctx-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.12s var(--ease);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ctx-item:hover { background: var(--bg-3); }
+        .ctx-item.danger:hover { background: var(--danger); color: white; }
+        .ctx-item .ctx-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.85;
+            flex-shrink: 0;
+        }
+        .ctx-item .ctx-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .ctx-item .ctx-shortcut {
+            margin-left: auto;
+            font-size: 10px;
+            color: var(--text-dim);
+            font-family: inherit;
+            background: var(--bg-3);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .ctx-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+        .ctx-header {
+            padding: 6px 12px 4px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--bg-3); border-radius: 10px; border: 2px solid var(--bg); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        body.light {
+            --bg: #f5f5f8; --bg-2: #ffffff; --bg-3: #f0f0f5; --bg-4: #e4e4ed;
+            --text: #1a1a2e; --text-dim: #6a6a7a; --border: rgba(0, 0, 0, 0.08);
+        }
+        body.incognito {
+            --accent: #7c5cff; --bg: #1a1520; --bg-2: #231b2e;
+            --bg-3: #2c2238; --bg-4: #362a45;
+        }
+        body.incognito .new-tab-btn { display: none; }
+    </style>
+</head>
+<body>
+<!-- Title Bar -->
+<div class="titlebar">
+    <div class="titlebar-logo">sNET</div>
+    <div class="incognito-badge">🕶 Incognito</div>
+    <div class="resource-monitor">
+        <div class="res-item" title="RAM Usage">
+            <span class="res-label">RAM</span>
+            <span class="res-dot" id="ram-dot"></span>
+            <span class="res-value" id="ram-value">0 MB</span>
+        </div>
+        <div class="res-item" title="CPU Usage">
+            <span class="res-label">CPU</span>
+            <span class="res-dot" id="cpu-dot"></span>
+            <span class="res-value" id="cpu-value">0%</span>
+        </div>
+    </div>
+    <div class="window-controls">
+        <button id="min-btn" class="win-btn">─</button>
+        <button id="max-btn" class="win-btn">□</button>
+        <button id="close-btn" class="win-btn close">✕</button>
+    </div>
+</div>
+<!-- Toolbar -->
+<div class="toolbar">
+    <div class="nav-buttons">
+        <button id="back" class="nav-btn" title="Back">‹</button>
+        <button id="forward" class="nav-btn" title="Forward">›</button>
+        <button id="reload" class="nav-btn" title="Reload">⟳</button>
+    </div>
+    <div class="url-bar-wrapper">
+        <span class="lock-icon">🔒</span>
+        <input id="url-bar" type="text" placeholder="Search or enter URL..." spellcheck="false" />
+    </div>
+    <div class="extra-buttons">
+        <button id="home" class="nav-btn" title="Home">⌂</button>
+        <button id="split-btn" class="nav-btn" title="Split Screen (Ctrl+Shift+S)">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <line x1="12" y1="3" x2="12" y2="21"/>
+            </svg>
+        </button>
+        <button id="extensions-btn" class="nav-btn" title="Extensions">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 16V7a2 2 0 0 0-2-2h-2.5a2 2 0 0 1-2-2V2.5a2 2 0 0 0-2-2h-3a2 2 0 0 0-2 2V3a2 2 0 0 1-2 2H4a2 2 0 0 0-2 2v9"/></svg>
+        </button>
+        <button id="downloads-btn" class="nav-btn" title="Downloads">
+            ⬇
+            <span id="downloads-badge" class="badge hidden">0</span>
+        </button>
+        <button id="menu" class="nav-btn" title="Menu">⋯</button>
+    </div>
+</div>
+<!-- Tab Bar -->
+<div class="tab-bar" id="tab-bar">
+    <button id="new-tab" class="new-tab-btn" title="New tab">+</button>
+</div>
+<!-- Loading Bar -->
+<div class="loading-bar" id="loading-bar"></div>
+<!-- Main Layout -->
+<div class="main-layout">
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-icons-wrap" id="sidebar-icons-wrap">
+            <div class="sidebar-icon" title="TikTok" onclick="openSidebarLink('https://www.tiktok.com')">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" fill="#fff"/></svg>
+            </div>
+            <div class="sidebar-icon" title="YouTube" onclick="openSidebarLink('https://www.youtube.com')">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill="#FF0000"/></svg>
+            </div>
+            <div class="sidebar-icon" title="ChatGPT" onclick="openSidebarLink('https://chatgpt.com')">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                    <path d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91 6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9 6.046 6.046 0 0 0 .743 7.097 5.98 5.98 0 0 0 .51 4.911 6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206 5.99 5.99 0 0 0 3.997-2.9 6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081 4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085 4.783 2.759a.771.771 0 0 0 .78 0l5.843-3.369v2.332a.08.08 0 0 1-.033.062L9.74 19.95a4.5 4.5 0 0 1-6.14-1.646zM2.34 7.896a4.485 4.485 0 0 1 2.366-1.973V11.6a.766.766 0 0 0 .388.677l5.815 3.354-2.02 1.168a.076.076 0 0 1-.071 0l-4.83-2.786A4.504 4.504 0 0 1 2.34 7.896zm16.099 3.855L12.598 8.383l2.016-1.158a.076.076 0 0 1 .071 0l4.83 2.791a4.494 4.494 0 0 1-.676 8.105v-5.678a.79.79 0 0 0-.407-.667zm2.01-3.023l-.142-.085-4.773-2.781a.776.776 0 0 0-.785 0L9.409 9.23V6.897a.066.066 0 0 1 .028-.061l4.83-2.787a4.5 4.5 0 0 1 6.68 4.66zM8.306 12.863l-2.02-1.164a.08.08 0 0 1-.038-.057V6.074a4.499 4.499 0 0 1 7.376-3.454l-.142.08L8.704 5.459a.795.795 0 0 0-.393.681zm1.097-2.365l2.602-1.5 2.607 1.5v2.999l-2.597 1.5-2.607-1.5z" fill="#10A37F"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" title="DeepSeek" onclick="openSidebarLink('https://chat.deepseek.com')">
+                <img src="deepseek.png" alt="DeepSeek Logo">
+            </div>
+            <div class="sidebar-icon" title="Gemini" onclick="openSidebarLink('https://gemini.google.com')">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z" fill="#1A73E8"/></svg>
+            </div>
+            <div class="sidebar-icon" title="Claude" onclick="openSidebarLink('https://claude.ai')">
+                <img src="claude.png" alt="Claude Logo">
+            </div>
+            <div class="sidebar-icon" title="Steam" onclick="openSidebarLink('https://store.steampowered.com')">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="#66c0f4">
+                    <path d="M.329 10.333A8.01 8.01 0 0 0 7.99 16C12.414 16 16 12.418 16 8s-3.586-8-8.009-8A8.006 8.006 0 0 0 0 7.468l.003.006 4.304 1.769A2.2 2.2 0 0 1 5.62 8.88l1.96-2.844-.001-.04a3.046 3.046 0 0 1 3.042-3.043 3.046 3.046 0 0 1 3.042 3.043 3.047 3.047 0 0 1-3.111 3.044l-2.804 2a2.223 2.223 0 0 1-3.075 2.11 2.22 2.22 0 0 1-1.312-1.568L.33 10.333ZM4.868 12.683a1.715 1.715 0 0 0 1.318-3.165 1.7 1.7 0 0 0-1.263-.02l1.023.424a1.261 1.261 0 1 1-.97 2.33l-.99-.41a1.7 1.7 0 0 0 .882.84Zm3.726-6.687a2.03 2.03 0 0 0 2.027 2.029 2.03 2.03 0 0 0 2.027-2.029 2.03 2.03 0 0 0-2.027-2.027 2.03 2.03 0 0 0-2.027 2.027m2.03-1.527a1.524 1.524 0 1 1-.002 3.048 1.524 1.524 0 0 1 .002-3.048"/>
+                </svg>
+            </div>
+            <div class="sidebar-icon" title="Epic Games" onclick="openSidebarLink('https://store.epicgames.com')">
+                <img src="epicgames.png" alt="Epic Games Logo">
+            </div>
+            <div class="sidebar-icon" title="Games (Offline)" onclick="openGames()" style="position:relative;">
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="6" y1="12" x2="10" y2="12"></line>
+                    <line x1="8" y1="10" x2="8" y2="14"></line>
+                    <line x1="15" y1="13" x2="15.01" y2="13"></line>
+                    <line x1="18" y1="11" x2="18.01" y2="11"></line>
+                    <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                </svg>
+                <span id="offline-dot-sidebar" style="position:absolute; bottom:6px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--warning); border:1.5px solid var(--bg-2); display:none;"></span>
+            </div>
+            <div id="sidebar-shortcuts"></div>
+        </div>
+        <div class="sidebar-panel" id="sidebar-panel">
+            <div class="sidebar-panel-header">
+                <button class="sidebar-panel-btn" id="sb-back" title="Back">‹</button>
+                <button class="sidebar-panel-btn" id="sb-forward" title="Forward">›</button>
+                <button class="sidebar-panel-btn" id="sb-reload" title="Reload">⟳</button>
+                <div class="sidebar-panel-title" id="sb-title">Loading...</div>
+                <button class="sidebar-panel-btn close" id="sb-close" title="Close">✕</button>
+            </div>
+            <webview id="sb-webview" allowpopups src="about:blank"></webview>
+        </div>
+    </div>
+    <div class="content" id="content">
+        <div class="bg-layer" id="bg-layer"></div>
+    </div>
+</div>
+<!-- Task Manager -->
+<div class="task-manager-modal" id="task-manager-modal">
+    <div class="tm-content">
+        <div class="tm-header">
+            <div class="tm-title">📊 Task Manager</div>
+            <button class="modal-close" id="tm-close">✕</button>
+        </div>
+        <div class="tm-body">
+            <div class="tm-stat">
+                <div class="tm-stat-label">🧠 RAM Usage</div>
+                <div class="tm-stat-value" id="tm-ram">0 MB</div>
+            </div>
+            <div class="tm-progress"><div class="tm-progress-fill" id="tm-ram-bar" style="width:0%; background:var(--success);"></div></div>
+            <div class="tm-stat">
+                <div class="tm-stat-label">⚡ CPU Usage</div>
+                <div class="tm-stat-value" id="tm-cpu">0%</div>
+            </div>
+            <div class="tm-progress"><div class="tm-progress-fill" id="tm-cpu-bar" style="width:0%; background:var(--success);"></div></div>
+            <div style="font-size:11px; color:var(--text-dim); text-align:center;">Press <b>Tab</b> to toggle this window</div>
+        </div>
+        <div class="tm-footer"><button class="btn-secondary" id="tm-refresh">Refresh</button></div>
+    </div>
+</div>
+<!-- Shortcut Modal -->
+<div class="shortcut-modal" id="shortcut-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">➕ Add Shortcut</div>
+            <button class="modal-close" id="sm-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-field">
+                <label>Name</label>
+                <input type="text" id="sm-name" placeholder="e.g. YouTube" autocomplete="off" />
+            </div>
+            <div class="modal-field">
+                <label>URL</label>
+                <input type="text" id="sm-url" placeholder="e.g. youtube.com" autocomplete="off" />
+            </div>
+            <div class="sm-preview">
+                <div class="sm-preview-icon" id="sm-preview-icon"><span class="fallback-letter">?</span></div>
+                <div>
+                    <div class="sm-preview-name" id="sm-preview-name">Shortcut name</div>
+                    <div class="sm-preview-url" id="sm-preview-url">example.com</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" id="sm-cancel">Cancel</button>
+            <button class="btn-primary" id="sm-save" disabled>Save Shortcut</button>
+        </div>
+    </div>
+</div>
+<!-- Rename Modal -->
+<div class="rename-modal" id="rename-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">✏️ Rename Shortcut</div>
+            <button class="modal-close" id="rename-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-field">
+                <label>New name</label>
+                <input type="text" id="rename-input" placeholder="New name..." autocomplete="off" />
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-secondary" id="rename-cancel">Cancel</button>
+            <button class="btn-primary" id="rename-save">Save</button>
+        </div>
+    </div>
+</div>
+<!-- Incognito Info Modal -->
+<div class="incognito-modal" id="incognito-modal">
+    <div class="modal-content" style="width: 480px;">
+        <div class="modal-header">
+            <div class="modal-title">🕶 You are incognito</div>
+            <button class="modal-close" id="incognito-close">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="incognito-info-list">
+                <div class="incognito-info-item"><span class="icon">🌐</span><div>Websites you visit</div></div>
+                <div class="incognito-info-item"><span class="icon">🏢</span><div>Your employer or school</div></div>
+                <div class="incognito-info-item"><span class="icon">📡</span><div>Your internet service provider</div></div>
+            </div>
+            <div class="incognito-warning">
+                sNET does not save your browsing history, cookies, site data, or information entered in forms.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary" id="incognito-ok">Got it</button>
+        </div>
+    </div>
+</div>
+<!-- Menu Dropdown -->
+<div class="menu-dropdown" id="menu-dropdown">
+    <div class="menu-item" data-action="new-tab"><span class="menu-item-icon">+</span> New Tab <kbd>Ctrl+T</kbd></div>
+    <div class="menu-item" data-action="new-incognito"><span class="menu-item-icon">🕶</span> New Incognito Tab <kbd>Ctrl+Shift+N</kbd></div>
+    <div class="menu-item" data-action="new-window"><span class="menu-item-icon">▢</span> New Window</div>
+    <div class="menu-item" data-action="new-incognito-window"><span class="menu-item-icon">🕶</span> New Incognito Window</div>
+    <div class="menu-item" data-action="split-toggle"><span class="menu-item-icon">◫</span> Toggle Split Screen <kbd>Ctrl+Shift+S</kbd></div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-action="games"><span class="menu-item-icon">🎮</span> Games (Offline)</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-action="adblock"><span class="menu-item-icon">🛡️</span> Site Blocker</div>
+    <div class="menu-item" data-action="extensions"><span class="menu-item-icon">🧩</span> Extensions</div>
+    <div class="menu-item" data-action="history"><span class="menu-item-icon">🕐</span> History</div>
+    <div class="menu-item" data-action="downloads"><span class="menu-item-icon">⬇</span> Downloads</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-action="settings"><span class="menu-item-icon">⚙</span> Settings</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item" data-action="zoom-in"><span class="menu-item-icon">＋</span> Zoom In</div>
+    <div class="menu-item" data-action="zoom-out"><span class="menu-item-icon">－</span> Zoom Out</div>
+    <div class="menu-item" data-action="zoom-reset"><span class="menu-item-icon">⟲</span> Reset Zoom (100%)</div>
+</div>
+<!-- Download Toast container -->
+<div id="download-toast-container"></div>
+<!-- ===== Right-click Context Menu ===== -->
+<div class="ctx-menu" id="ctx-menu"></div>
+<script>
+    // ==========================================
+    // Constants
+    // ==========================================
+    const NEW_TAB_URL = 'snet://newtab';
+    const SETTINGS_URL = 'snet://settings';
+    const DOWNLOADS_URL = 'snet://downloads';
+    const HISTORY_URL = 'snet://history';
+    const EXTENSIONS_URL = 'snet://extensions';
+    const ADBLOCK_URL = 'snet://adblock';
+    const CHROME_STORE_URL = 'https://chromewebstore.google.com/';
+
+    const SEARCH_ENGINES = {
+        google: { name: 'Google', url: 'https://www.google.com/search?q=' },
+        duckduckgo: { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
+        bing: { name: 'Bing', url: 'https://www.bing.com/search?q=' },
+        yandex: { name: 'Yandex', url: 'https://yandex.com/search/?text=' },
+        brave: { name: 'Brave', url: 'https://search.brave.com/search?q=' },
+        ecosia: { name: 'Ecosia', url: 'https://www.ecosia.org/search?q=' },
+        startpage: { name: 'Startpage', url: 'https://www.startpage.com/sp/search?query=' },
+        qwant: { name: 'Qwant', url: 'https://www.qwant.com/?q=' },
+        yahoo: { name: 'Yahoo', url: 'https://search.yahoo.com/search?p=' },
+        baidu: { name: 'Baidu', url: 'https://www.baidu.com/s?wd=' },
+        naver: { name: 'Naver', url: 'https://search.naver.com/search.naver?query=' },
+        seznam: { name: 'Seznam', url: 'https://search.seznam.cz/?q=' }
+    };
+
+    const LANGUAGES = {
+        'en-US': 'English (US)', 'en-UK': 'English (UK)', 'ru': 'Русский',
+        'zh': '中文', 'ko': '한국어', 'de': 'Deutsch'
+    };
+
+    const TRANSLATIONS = {
+        'en-US': { searchSubtitle: 'Search the web securely', searchPlaceholder: 'Search or enter URL...', addShortcut: 'Add shortcut', showMore: 'Show more', showLess: 'Show less', incognitoTitle: 'You are incognito', incognitoWebsites: 'Websites you visit', incognitoEmployer: 'Your employer or school', incognitoISP: 'Your internet service provider' },
+        'en-UK': { searchSubtitle: 'Search the web securely', searchPlaceholder: 'Search or enter URL...', addShortcut: 'Add shortcut', showMore: 'Show more', showLess: 'Show less', incognitoTitle: 'You are incognito', incognitoWebsites: 'Websites you visit', incognitoEmployer: 'Your employer or school', incognitoISP: 'Your internet service provider' },
+        'ru': { searchSubtitle: 'Ищите в интернете безопасно', searchPlaceholder: 'Поиск или URL...', addShortcut: 'Добавить ярлык', showMore: 'Показать ещё', showLess: 'Скрыть', incognitoTitle: 'Вы в режиме инкогнито', incognitoWebsites: 'Сайты, которые вы посещаете', incognitoEmployer: 'Ваш работодатель или школа', incognitoISP: 'Ваш интернет-провайдер' },
+        'zh': { searchSubtitle: '安全地搜索网络', searchPlaceholder: '搜索或输入网址...', addShortcut: '添加快捷方式', showMore: '显示更多', showLess: '收起', incognitoTitle: '您处于无痕模式', incognitoWebsites: '您访问的网站', incognitoEmployer: '您的雇主或学校', incognitoISP: '您的互联网服务提供商' },
+        'ko': { searchSubtitle: '안전하게 웹 검색', searchPlaceholder: '검색 또는 URL 입력...', addShortcut: '바로가기 추가', showMore: '더 보기', showLess: '접기', incognitoTitle: '시크릿 모드입니다', incognitoWebsites: '방문하는 웹사이트', incognitoEmployer: '직장 또는 학교', incognitoISP: '인터넷 서비스 제공업체' },
+        'de': { searchSubtitle: 'Sicher im Web suchen', searchPlaceholder: 'Suchen oder URL eingeben...', addShortcut: 'Verknüpfung hinzufügen', showMore: 'Mehr anzeigen', showLess: 'Weniger anzeigen', incognitoTitle: 'Sie sind inkognito', incognitoWebsites: 'Websites, die Sie besuchen', incognitoEmployer: 'Ihr Arbeitgeber oder Ihre Schule', incognitoISP: 'Ihr Internetanbieter' }
+    };
+
+    // ==========================================
+    // DOM
+    // ==========================================
+    const tabBar = document.getElementById('tab-bar');
+    const content = document.getElementById('content');
+    const urlBar = document.getElementById('url-bar');
+    const loadingBar = document.getElementById('loading-bar');
+    const backBtn = document.getElementById('back');
+    const forwardBtn = document.getElementById('forward');
+    const menuDropdown = document.getElementById('menu-dropdown');
+    const tmModal = document.getElementById('task-manager-modal');
+    const shortcutModal = document.getElementById('shortcut-modal');
+    const splitBtn = document.getElementById('split-btn');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarPanel = document.getElementById('sidebar-panel');
+    const sidebarShortcutsWrap = document.getElementById('sidebar-shortcuts');
+    const sbWebview = document.getElementById('sb-webview');
+    const sbTitle = document.getElementById('sb-title');
+    const sbBack = document.getElementById('sb-back');
+    const sbForward = document.getElementById('sb-forward');
+    const sbReload = document.getElementById('sb-reload');
+    const sbClose = document.getElementById('sb-close');
+    const renameModal = document.getElementById('rename-modal');
+    const renameInput = document.getElementById('rename-input');
+    const incognitoModal = document.getElementById('incognito-modal');
+    const bgLayer = document.getElementById('bg-layer');
+    const ctxMenu = document.getElementById('ctx-menu');
+
+    let renamingId = null;
+
+    // ==========================================
+    // Global state
+    // ==========================================
+    let tabs = [];
+    let activeTabId = null;
+    let tabCounter = 0;
+    let shortcutsList = [];
+    let sidebarItems = [];
+    let splitActive = false;
+    let splitPaneLeft = null;
+    let splitPaneRight = null;
+    let splitRatio = 50;
+    let sidebarOpen = false;
+    let sidebarCurrentUrl = '';
+    let downloads = [];
+    let isIncognitoMode = false;
+    let bgAudio = null;
+    let newTabShowAll = {};
+    let adblockSessionPassword = null;
+    let historySearchQuery = '';
+    let downloadsFilter = 'all';
+
+    let adblockStatus = { enabled: true, ready: false };
+
+    // ==========================================
+    // Site Blocker unlock fix — per-tab unlocked URLs
+    // ==========================================
+    const unlockedUrlsByTab = new Map();
+
+    function isUrlUnlockedForTab(tabId, url) {
+        const set = unlockedUrlsByTab.get(tabId);
+        if (!set) return false;
+        if (set.has(url)) return true;
+        let host = '';
+        try { host = new URL(url).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
+        if (host && set.has(host)) return true;
+        return false;
+    }
+
+    function unlockUrlForTab(tabId, url) {
+        let set = unlockedUrlsByTab.get(tabId);
+        if (!set) { set = new Set(); unlockedUrlsByTab.set(tabId, set); }
+        set.add(url);
+        try {
+            const u = new URL(url);
+            const host = u.hostname.replace(/^www\./i, '').toLowerCase();
+            if (host) { set.add(host); set.add('www.' + host); }
+        } catch {}
+    }
+
+    let settings = {
+        homePage: NEW_TAB_URL,
+        searchEngine: 'google',
+        darkMode: true,
+        themeColor: '#7c5cff',
+        accentColor: '#00d4ff',
+        brightness: 100,
+        backgroundType: 'none',
+        backgroundImage: null,
+        backgroundVideo: null,
+        backgroundMusic: null,
+        musicLoop: true,
+        downloadPath: null,
+        showDownloadAlert: true,
+        language: 'en-US',
+        adblockEnabled: true
+    };
+
+    // ==========================================
+    // Helpers
+    // ==========================================
+    function escapeHtml(s) {
+        return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+    function getFileIcon(filename) {
+        const ext = (filename || '').split('.').pop().toLowerCase();
+        const icons = {
+            pdf:'📄', doc:'📝', docx:'📝', txt:'📝',
+            zip:'🗜️', rar:'🗜️', '7z':'🗜️',
+            mp3:'🎵', wav:'🎵', flac:'🎵', m4a:'🎵',
+            mp4:'🎬', mkv:'🎬', avi:'🎬', webm:'🎬', mov:'🎬',
+            jpg:'🖼️', jpeg:'🖼️', png:'🖼️', gif:'🖼️', webp:'🖼️', bmp:'🖼️',
+            exe:'⚙️', msi:'⚙️', apk:'📱',
+            json:'{}', js:'📜', html:'🌐', css:'🎨'
+        };
+        return icons[ext] || '📦';
+    }
+    function t(key, fallback) {
+        const tr = TRANSLATIONS[settings.language] || TRANSLATIONS['en-US'];
+        return tr[key] || fallback;
+    }
+
+    // ==========================================
+    // Window controls
+    // ==========================================
+    document.getElementById('min-btn').onclick = () => window.electronAPI.minimize();
+    document.getElementById('max-btn').onclick = () => window.electronAPI.maximize();
+    document.getElementById('close-btn').onclick = () => window.electronAPI.close();
+
+    // ==========================================
+    // Theme / appearance
+    // ==========================================
+    function applyTheme() {
+        const root = document.documentElement;
+        root.style.setProperty('--accent', settings.themeColor);
+        root.style.setProperty('--accent-2', settings.accentColor);
+        root.style.setProperty('--brightness', (settings.brightness / 100).toString());
+        document.body.classList.toggle('light', !settings.darkMode);
+    }
+
+    function applyBackground() {
+        bgLayer.innerHTML = '';
+        if (settings.backgroundType === 'color' && settings.backgroundImage && settings.backgroundImage.startsWith('#')) {
+            const c = document.createElement('div');
+            c.className = 'bg-color';
+            c.style.background = settings.backgroundImage;
+            bgLayer.appendChild(c);
+        } else if (settings.backgroundType === 'image' && settings.backgroundImage) {
+            const img = document.createElement('img');
+            img.src = 'file://' + settings.backgroundImage.replace(/\\/g, '/');
+            bgLayer.appendChild(img);
+        } else if (settings.backgroundType === 'video' && settings.backgroundVideo) {
+            const v = document.createElement('video');
+            v.src = 'file://' + settings.backgroundVideo.replace(/\\/g, '/');
+            v.autoplay = true; v.loop = true; v.muted = true;
+            bgLayer.appendChild(v);
+        }
+    }
+
+    function applyMusic() {
+        if (bgAudio) { bgAudio.pause(); bgAudio = null; }
+        if (settings.backgroundMusic) {
+            bgAudio = new Audio('file://' + settings.backgroundMusic.replace(/\\/g, '/'));
+            bgAudio.loop = settings.musicLoop;
+            bgAudio.volume = 0.5;
+            bgAudio.play().catch(() => {});
+        }
+    }
+
+    // ==========================================
+    // Sidebar
+    // ==========================================
+    function openSidebarLink(url) {
+        if (!url) return;
+        if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+            url = 'https://' + url;
+        }
+        sidebarCurrentUrl = url;
+        sidebar.classList.add('expanded');
+        sidebarPanel.classList.add('active');
+        sidebarOpen = true;
+        sbTitle.textContent = url;
+        try { sbWebview.loadURL(url); } catch { setTimeout(() => { try { sbWebview.loadURL(url); } catch {} }, 100); }
+        updateSidebarNav();
+    }
+    window.openSidebarLink = openSidebarLink;
+
+    function closeSidebarPanel() {
+        sidebar.classList.remove('expanded');
+        sidebarPanel.classList.remove('active');
+        sidebarOpen = false;
+        try { sbWebview.loadURL('about:blank'); } catch {}
+    }
+    sbClose.onclick = closeSidebarPanel;
+    sbBack.onclick = () => { try { if (sbWebview.canGoBack()) sbWebview.goBack(); } catch {} };
+    sbForward.onclick = () => { try { if (sbWebview.canGoForward()) sbWebview.goForward(); } catch {} };
+    sbReload.onclick = () => { try { sbWebview.reload(); } catch {} };
+
+    function updateSidebarNav() {
+        try {
+            sbBack.disabled = !sbWebview.canGoBack();
+            sbForward.disabled = !sbWebview.canGoForward();
+        } catch {}
+    }
+    sbWebview.addEventListener('did-start-loading', () => { if (sidebarOpen) loadingBar.classList.add('active'); });
+    sbWebview.addEventListener('did-stop-loading', () => { if (sidebarOpen) loadingBar.classList.remove('active'); updateSidebarNav(); });
+    sbWebview.addEventListener('page-title-updated', (e) => { if (sidebarOpen) sbTitle.textContent = e.title || sidebarCurrentUrl; });
+    sbWebview.addEventListener('did-navigate', (e) => { if (sidebarOpen) { sidebarCurrentUrl = e.url; sbTitle.textContent = e.url; } updateSidebarNav(); });
+
+    function renderSidebarShortcuts() {
+        if (!sidebarShortcutsWrap) return;
+        if (!sidebarItems.length) { sidebarShortcutsWrap.innerHTML = ''; return; }
+        sidebarShortcutsWrap.innerHTML = sidebarItems.map(item => {
+            const initial = (item.name || '?').charAt(0).toUpperCase();
+            const iconHtml = item.iconUrl
+                ? `<img src="${item.iconUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=&quot;sb-fallback&quot;>${initial}</span>'" />`
+                : `<span class="sb-fallback">${initial}</span>`;
+            return `<div class="sidebar-shortcut" data-id="${item.id}" data-url="${escapeHtml(item.url)}" title="${escapeHtml(item.name)}">
+                <button class="sb-remove" data-sbremove="${item.id}" title="Remove">✕</button>${iconHtml}</div>`;
+        }).join('');
+        sidebarShortcutsWrap.querySelectorAll('.sidebar-shortcut').forEach(el => {
+            el.onclick = (e) => { if (e.target.closest('.sb-remove')) return; openSidebarLink(el.dataset.url); };
+        });
+        sidebarShortcutsWrap.querySelectorAll('[data-sbremove]').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                try { sidebarItems = await window.electronAPI.removeSidebarItem(btn.dataset.sbremove); renderSidebarShortcuts(); renderNewTabIfActive(); } catch {}
+            };
+        });
+    }
+
+    async function loadSidebarItems() {
+        try { sidebarItems = await window.electronAPI.getSidebarItems() || []; } catch { sidebarItems = []; }
+        renderSidebarShortcuts();
+    }
+
+    // ==========================================
+    // Offline games
+    // ==========================================
+    async function openGames() {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        try {
+            const gamesUrl = await window.electronAPI.getGamesUrl();
+            hideAllInternals(tab);
+            tab.webview.style.visibility = 'visible';
+            tab.url = gamesUrl;
+            tab.webview.loadURL(gamesUrl);
+        } catch (e) { console.error(e); }
+    }
+    window.openGames = openGames;
+
+    function updateOfflineDot() {
+        const dot = document.getElementById('offline-dot-sidebar');
+        if (dot) dot.style.display = navigator.onLine ? 'none' : 'block';
+    }
+    window.addEventListener('online', updateOfflineDot);
+    window.addEventListener('offline', updateOfflineDot);
+    updateOfflineDot();
+
+    // ==========================================
+    // Task Manager
+    // ==========================================
+    function toggleTaskManager() {
+        tmModal.classList.toggle('open');
+        if (tmModal.classList.contains('open')) updateTaskManager();
+    }
+    function updateTaskManager() {
+        const last = window._lastResourceData || { ram: 0, cpu: 0 };
+        document.getElementById('tm-ram').textContent = last.ram + ' MB';
+        document.getElementById('tm-cpu').textContent = last.cpu + '%';
+        const ramBar = document.getElementById('tm-ram-bar');
+        const cpuBar = document.getElementById('tm-cpu-bar');
+        const rp = Math.min((last.ram / 2048) * 100, 100);
+        ramBar.style.width = rp + '%';
+        ramBar.style.background = last.ram > 2048 ? 'var(--danger)' : last.ram > 1024 ? 'var(--warning)' : 'var(--success)';
+        cpuBar.style.width = Math.min(last.cpu, 100) + '%';
+        cpuBar.style.background = last.cpu > 85 ? 'var(--danger)' : last.cpu > 50 ? 'var(--warning)' : 'var(--success)';
+    }
+    document.getElementById('tm-close').onclick = () => tmModal.classList.remove('open');
+    document.getElementById('tm-refresh').onclick = updateTaskManager;
+    tmModal.onclick = (e) => { if (e.target === tmModal) tmModal.classList.remove('open'); };
+
+    // ==========================================
+    // Shortcuts
+    // ==========================================
+    async function loadShortcuts() {
+        try { shortcutsList = await window.electronAPI.getShortcuts() || []; } catch { shortcutsList = []; }
+        renderNewTabIfActive();
+    }
+
+    let pendingFaviconUrl = null;
+    let faviconDebounce = null;
+
+    function openShortcutModal() {
+        if (isIncognitoMode) return;
+        document.getElementById('sm-name').value = '';
+        document.getElementById('sm-url').value = '';
+        updateShortcutPreview();
+        shortcutModal.classList.add('open');
+        setTimeout(() => document.getElementById('sm-name').focus(), 100);
+    }
+    function closeShortcutModal() {
+        shortcutModal.classList.remove('open');
+        pendingFaviconUrl = null;
+        document.getElementById('sm-name').value = '';
+        document.getElementById('sm-url').value = '';
+    }
+    async function updateShortcutPreview() {
+        const name = document.getElementById('sm-name').value.trim();
+        const urlRaw = document.getElementById('sm-url').value.trim();
+        const previewName = document.getElementById('sm-preview-name');
+        const previewUrl = document.getElementById('sm-preview-url');
+        const previewIcon = document.getElementById('sm-preview-icon');
+        const saveBtn = document.getElementById('sm-save');
+        let finalUrl = urlRaw;
+        if (urlRaw && !urlRaw.startsWith('http://') && !urlRaw.startsWith('https://')) finalUrl = 'https://' + urlRaw;
+        previewName.textContent = name || 'Shortcut name';
+        previewUrl.textContent = urlRaw || 'example.com';
+        if (finalUrl && (finalUrl.startsWith('http://') || finalUrl.startsWith('https://'))) {
+            clearTimeout(faviconDebounce);
+            faviconDebounce = setTimeout(async () => {
+                try {
+                    const icon = await window.electronAPI.getFavicon(finalUrl);
+                    if (icon) {
+                        pendingFaviconUrl = icon;
+                        previewIcon.innerHTML = `<img src="${icon}" onerror="this.parentElement.innerHTML='<span class=&quot;fallback-letter&quot;>${(name || '?').charAt(0).toUpperCase()}</span>'" />`;
+                    }
+                } catch {}
+            }, 400);
+        } else { pendingFaviconUrl = null; }
+        if (!pendingFaviconUrl) previewIcon.innerHTML = `<span class="fallback-letter">${(name || '?').charAt(0).toUpperCase()}</span>`;
+        saveBtn.disabled = !(name && urlRaw);
+    }
+    document.getElementById('sm-name').oninput = updateShortcutPreview;
+    document.getElementById('sm-url').oninput = updateShortcutPreview;
+    document.getElementById('sm-close').onclick = closeShortcutModal;
+    document.getElementById('sm-cancel').onclick = closeShortcutModal;
+    shortcutModal.onclick = (e) => { if (e.target === shortcutModal) closeShortcutModal(); };
+    document.getElementById('sm-save').onclick = async () => {
+        const name = document.getElementById('sm-name').value.trim();
+        let url = document.getElementById('sm-url').value.trim();
+        if (!name || !url) return;
+        if (!url.startsWith('http://') && !url.startsWith('https://')) url = 'https://' + url;
+        try {
+            shortcutsList = await window.electronAPI.saveShortcut({ name, url, iconUrl: pendingFaviconUrl || null });
+            renderNewTabIfActive();
+            closeShortcutModal();
+        } catch (e) { console.error(e); }
+    };
+
+    async function deleteShortcut(id) {
+        try {
+            shortcutsList = await window.electronAPI.deleteShortcut(id);
+            const sbItem = sidebarItems.find(s => s.shortcutId === id);
+            if (sbItem) { sidebarItems = await window.electronAPI.removeSidebarItem(sbItem.id); renderSidebarShortcuts(); }
+            renderNewTabIfActive();
+        } catch (e) { console.error(e); }
+    }
+
+    function openRenameModal(id, currentName) {
+        renamingId = id;
+        renameInput.value = currentName || '';
+        renameModal.classList.add('open');
+        setTimeout(() => { renameInput.focus(); renameInput.select(); }, 100);
+    }
+    function closeRenameModal() {
+        renameModal.classList.remove('open');
+        renamingId = null;
+        renameInput.value = '';
+    }
+    document.getElementById('rename-close').onclick = closeRenameModal;
+    document.getElementById('rename-cancel').onclick = closeRenameModal;
+    renameModal.onclick = (e) => { if (e.target === renameModal) closeRenameModal(); };
+    document.getElementById('rename-save').onclick = async () => {
+        if (!renamingId) return;
+        const newName = renameInput.value.trim();
+        if (!newName) return;
+        try {
+            shortcutsList = await window.electronAPI.renameShortcut(renamingId, newName);
+            const sbItem = sidebarItems.find(s => s.shortcutId === renamingId);
+            if (sbItem) { sidebarItems = await window.electronAPI.updateSidebarItem(sbItem.id, { name: newName }); renderSidebarShortcuts(); }
+            renderNewTabIfActive();
+            closeRenameModal();
+        } catch (e) { console.error(e); }
+    };
+    renameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') document.getElementById('rename-save').click();
+        if (e.key === 'Escape') closeRenameModal();
+    });
+
+    // ==========================================
+    // NEW TAB
+    // ==========================================
+    function renderNewTabIfActive() {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        if (tab.internal === 'newtab') renderNewTab(tab);
+    }
+
+    function renderNewTab(tab) {
+        const showAll = newTabShowAll[tab.id] || false;
+        const isIncog = !!tab.incognito;
+        const MAX_VISIBLE = 5;
+        const hasMore = shortcutsList.length > MAX_VISIBLE;
+        const list = (hasMore && !showAll) ? shortcutsList.slice(0, MAX_VISIBLE) : shortcutsList;
+        const sidebarIds = sidebarItems.map(s => s.shortcutId).filter(Boolean);
+
+        let incognitoHtml = '';
+        if (isIncog) {
+            incognitoHtml = `
+                <div class="newtab-incognito-info">
+                    <div class="newtab-incognito-title">🕶 ${t('incognitoTitle', 'You are incognito')}</div>
+                    <div class="newtab-incognito-item"><span class="icon">🌐</span><div>${t('incognitoWebsites', 'Websites you visit')}</div></div>
+                    <div class="newtab-incognito-item"><span class="icon">🏢</span><div>${t('incognitoEmployer', 'Your employer or school')}</div></div>
+                    <div class="newtab-incognito-item"><span class="icon">📡</span><div>${t('incognitoISP', 'Your internet service provider')}</div></div>
+                </div>`;
+        }
+
+        let shortcutsHtml = '';
+        if (!isIncog) {
+            const cards = list.map(s => {
+                const initial = (s.name || '?').charAt(0).toUpperCase();
+                const isInSidebar = sidebarIds.includes(s.id);
+                const iconHtml = s.iconUrl
+                    ? `<img src="${s.iconUrl}" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=&quot;fallback-letter&quot;>${initial}</span>'" />`
+                    : `<span class="fallback-letter">${initial}</span>`;
+                return `
+                    <div class="newtab-shortcut-card" data-id="${s.id}" data-url="${escapeHtml(s.url)}">
+                        <div class="newtab-shortcut-actions">
+                            <button class="newtab-sc-action-btn rename" data-rename="${s.id}" title="Rename">✏</button>
+                            <button class="newtab-sc-action-btn del" data-remove="${s.id}" title="Delete">✕</button>
+                        </div>
+                        <button class="newtab-sc-add-sidebar ${isInSidebar ? 'added' : ''}" data-sidebar="${s.id}" title="${isInSidebar ? 'Remove from sidebar' : 'Add to sidebar'}">${isInSidebar ? '✓' : '+'}</button>
+                        <div class="newtab-shortcut-icon">${iconHtml}</div>
+                        <div class="newtab-shortcut-name" title="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>
+                    </div>`;
+            }).join('');
+            const addBtn = `
+                <button class="newtab-shortcut-add" data-add-shortcut>
+                    <span class="plus">+</span>
+                    <span>${t('addShortcut', 'Add shortcut')}</span>
+                </button>`;
+            const showMoreBtn = hasMore ? `
+                <div class="newtab-show-more-wrap">
+                    <button class="newtab-show-more-btn" data-show-more>
+                        ${showAll ? t('showLess', 'Show less') : t('showMore', 'Show more')}
+                    </button>
+                </div>` : '';
+            shortcutsHtml = `
+                <div class="newtab-shortcuts-section">
+                    <div class="newtab-shortcuts-title"><span>Shortcuts</span></div>
+                    <div class="newtab-shortcuts-grid">${cards}${addBtn}</div>
+                    ${showMoreBtn}
+                </div>`;
+        }
+
+        const html = `
+            <div class="newtab-logo-container">
+                <div class="newtab-logo-text">sNET</div>
+                <div class="newtab-logo-subtitle">${t('searchSubtitle', 'Search the web securely')}</div>
+            </div>
+            <div class="newtab-search-container">
+                <input type="text" class="newtab-search-box" id="newtab-search-input" placeholder="${t('searchPlaceholder', 'Search or enter URL...')}" autocomplete="off" />
+            </div>
+            ${incognitoHtml}
+            ${shortcutsHtml}
+        `;
+
+        let newtabDiv = tab.container.querySelector('.newtab-page');
+        if (!newtabDiv) {
+            newtabDiv = document.createElement('div');
+            newtabDiv.className = 'newtab-page';
+            tab.container.appendChild(newtabDiv);
+        }
+        newtabDiv.innerHTML = html;
+        newtabDiv.classList.add('active');
+        tab.internal = 'newtab';
+
+        const searchInput = newtabDiv.querySelector('#newtab-search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const q = searchInput.value.trim();
+                    if (q) searchFromNewTab(tab, q);
+                }
+            });
+        }
+        newtabDiv.querySelectorAll('.newtab-shortcut-card').forEach(card => {
+            card.onclick = (e) => {
+                if (e.target.closest('button')) return;
+                const url = card.getAttribute('data-url');
+                if (!url) return;
+                hideAllInternals(tab);
+                tab.webview.style.visibility = 'visible';
+                tab.url = url;
+                urlBar.value = url;
+                tab.webview.loadURL(url);
+            };
+        });
+        newtabDiv.querySelectorAll('[data-remove]').forEach(btn => {
+            btn.onclick = (e) => { e.stopPropagation(); deleteShortcut(btn.dataset.remove); };
+        });
+        newtabDiv.querySelectorAll('[data-rename]').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.rename;
+                const sc = shortcutsList.find(x => x.id === id);
+                openRenameModal(id, sc ? sc.name : '');
+            };
+        });
+        newtabDiv.querySelectorAll('[data-sidebar]').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                const id = btn.dataset.sidebar;
+                const sc = shortcutsList.find(x => x.id === id);
+                if (!sc) return;
+                if (sidebarIds.includes(id)) {
+                    try { sidebarItems = await window.electronAPI.removeSidebarItem(sidebarItems.find(s => s.shortcutId === id).id); renderSidebarShortcuts(); renderNewTabIfActive(); } catch {}
+                } else {
+                    try { sidebarItems = await window.electronAPI.addSidebarItem({ name: sc.name, url: sc.url, iconUrl: sc.iconUrl, shortcutId: id }); renderSidebarShortcuts(); renderNewTabIfActive(); } catch {}
+                }
+            };
+        });
+        const addBtn = newtabDiv.querySelector('[data-add-shortcut]');
+        if (addBtn) addBtn.onclick = () => openShortcutModal();
+        const showMoreBtn = newtabDiv.querySelector('[data-show-more]');
+        if (showMoreBtn) {
+            showMoreBtn.onclick = () => {
+                newTabShowAll[tab.id] = !showAll;
+                renderNewTab(tab);
+            };
+        }
+    }
+
+    function searchFromNewTab(tab, query) {
+        hideAllInternals(tab);
+        tab.webview.style.visibility = 'visible';
+        const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
+        const url = engine.url + encodeURIComponent(query);
+        urlBar.value = url;
+        tab.url = url;
+        try {
+            tab.webview.loadURL(url).catch(() => setTimeout(() => { try { tab.webview.loadURL(url); } catch {} }, 100));
+        } catch {}
+    }
+
+    // ==========================================
+    // Internal page helper
+    // ==========================================
+    function getTabPage(tab) {
+        let pageEl = tab.container.querySelector('.snet-page');
+        if (!pageEl) {
+            pageEl = document.createElement('div');
+            pageEl.className = 'snet-page';
+            tab.container.appendChild(pageEl);
+        }
+        return pageEl;
+    }
+
+    function hideAllInternals(tab) {
+        if (!tab) return;
+        const newtabDiv = tab.container.querySelector('.newtab-page');
+        if (newtabDiv) newtabDiv.classList.remove('active');
+        const snetPage = tab.container.querySelector('.snet-page');
+        if (snetPage) snetPage.classList.remove('active');
+        tab.internal = null;
+    }
+
+    function navigateToInternal(url) {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        hideAllInternals(tab);
+        tab.url = url;
+        tab.webview.style.visibility = 'hidden';
+
+        const pageEl = getTabPage(tab);
+        pageEl.classList.add('active');
+        pageEl.innerHTML = '';
+
+        if (url === SETTINGS_URL) {
+            tab.internal = 'settings';
+            renderSettingsPageInto(pageEl);
+            tab.title = 'Settings';
+        } else if (url === DOWNLOADS_URL) {
+            tab.internal = 'downloads';
+            renderDownloadsPageInto(pageEl);
+            tab.title = 'Downloads';
+        } else if (url === HISTORY_URL) {
+            tab.internal = 'history';
+            renderHistoryPageInto(pageEl);
+            tab.title = 'History';
+        } else if (url === EXTENSIONS_URL) {
+            tab.internal = 'extensions';
+            renderExtensionsPageInto(pageEl);
+            tab.title = 'Extensions';
+        } else if (url === ADBLOCK_URL) {
+            tab.internal = 'adblock';
+            renderAdblockPageInto(pageEl);
+            tab.title = 'Site Blocker';
+        }
+        tab.tabEl.querySelector('.tab-title').textContent = (tab.incognito ? '🕶 ' : '') + tab.title;
+        urlBar.value = url;
+    }
+
+    // ==========================================
+    // SETTINGS PAGE
+    // ==========================================
+    function renderSettingsPageInto(pageEl) {
+        pageEl.innerHTML = `
+            <div class="snet-inner">
+                <div class="snet-page-title">⚙ Settings</div>
+                <div class="snet-page-subtitle">Customize your sNET experience</div>
+                <div class="settings-nav">
+                    <button class="settings-nav-btn active" data-tab="appearance">Appearance</button>
+                    <button class="settings-nav-btn" data-tab="general">General</button>
+                    <button class="settings-nav-btn" data-tab="privacy">Privacy</button>
+                    <button class="settings-nav-btn" data-tab="downloads">Downloads</button>
+                    <button class="settings-nav-btn" data-tab="background">Background</button>
+                    <button class="settings-nav-btn" data-tab="about">About</button>
+                </div>
+                <div class="settings-tab active" data-tab-content="appearance">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Theme</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Dark mode<small>Toggle dark/light interface</small></div>
+                            <div class="toggle ${settings.darkMode ? 'on' : ''}" id="set-dark"></div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Theme color<small>Main accent color (hex)</small></div>
+                            <div class="settings-color-wrap">
+                                <input type="color" class="settings-input color-input" id="set-theme-color" value="${settings.themeColor}" />
+                                <input type="text" class="settings-input settings-color-hex" id="set-theme-hex" value="${settings.themeColor}" />
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Secondary color<small>Gradient accent</small></div>
+                            <div class="settings-color-wrap">
+                                <input type="color" class="settings-input color-input" id="set-accent-color" value="${settings.accentColor}" />
+                                <input type="text" class="settings-input settings-color-hex" id="set-accent-hex" value="${settings.accentColor}" />
+                            </div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Brightness<small>Adjust interface brightness</small></div>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <input type="range" class="settings-range" id="set-brightness" min="30" max="150" value="${settings.brightness}" />
+                                <span class="settings-range-value" id="set-brightness-val">${settings.brightness}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-tab" data-tab-content="general">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Startup</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Home page<small>URL loaded when a new tab opens</small></div>
+                            <input class="settings-input" id="set-home" type="text" placeholder="Default (sNET New Tab)" style="width:300px;" value="${settings.homePage === NEW_TAB_URL ? '' : escapeHtml(settings.homePage)}" />
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">Search</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Search engine<small>Used by the address bar</small></div>
+                            <select class="settings-select" id="set-search">
+                                ${Object.entries(SEARCH_ENGINES).map(([k, v]) =>
+            `<option value="${k}" ${settings.searchEngine === k ? 'selected' : ''}>${v.name}</option>`
+        ).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">Language</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Browser language<small>Interface language</small></div>
+                            <select class="settings-select" id="set-language">
+                                ${Object.entries(LANGUAGES).map(([k, v]) =>
+            `<option value="${k}" ${settings.language === k ? 'selected' : ''}>${v}</option>`
+        ).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-tab" data-tab-content="privacy">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Ad Blocking</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Block ads & trackers<small>Ghostery engine · YouTube exempted so videos load normally</small></div>
+                            <div class="toggle ${settings.adblockEnabled ? 'on' : ''}" id="set-adblock"></div>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">Site Blocker</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Password-protected site blocking<small>Block websites behind a password</small></div>
+                            <button class="btn-secondary" id="set-open-adblock">Open Site Blocker</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-tab" data-tab-content="downloads">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Location</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Download folder<small>${escapeHtml(settings.downloadPath || 'System default')}</small></div>
+                            <button class="btn-secondary" id="set-pick-download">Choose folder</button>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Open downloads page<small>View all downloads in browser</small></div>
+                            <button class="btn-secondary" id="set-open-downloads">Open snet://downloads</button>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">Notifications</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Show download alert<small>Show a toast when a download completes</small></div>
+                            <div class="toggle ${settings.showDownloadAlert ? 'on' : ''}" id="set-dl-alert"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-tab" data-tab-content="background">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Background type</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Type<small>Choose new tab background</small></div>
+                            <select class="settings-select" id="set-bg-type">
+                                <option value="none" ${settings.backgroundType === 'none' ? 'selected' : ''}>None</option>
+                                <option value="image" ${settings.backgroundType === 'image' ? 'selected' : ''}>Image</option>
+                                <option value="video" ${settings.backgroundType === 'video' ? 'selected' : ''}>Video</option>
+                                <option value="color" ${settings.backgroundType === 'color' ? 'selected' : ''}>Color</option>
+                            </select>
+                        </div>
+                        <div class="settings-row" id="row-bg-image" style="${settings.backgroundType === 'image' ? '' : 'display:none;'}">
+                            <div class="settings-row-label">Image<small id="bg-image-label">${escapeHtml(settings.backgroundImage || 'No image selected')}</small></div>
+                            <button class="btn-secondary" id="set-pick-image">Choose image</button>
+                        </div>
+                        <div class="settings-row" id="row-bg-video" style="${settings.backgroundType === 'video' ? '' : 'display:none;'}">
+                            <div class="settings-row-label">Video<small id="bg-video-label">${escapeHtml(settings.backgroundVideo || 'No video selected')}</small></div>
+                            <button class="btn-secondary" id="set-pick-video">Choose video</button>
+                        </div>
+                        <div class="settings-row" id="row-bg-color" style="${settings.backgroundType === 'color' ? '' : 'display:none;'}">
+                            <div class="settings-row-label">Background color<small>Solid background color</small></div>
+                            <div class="settings-color-wrap">
+                                <input type="color" class="settings-input color-input" id="set-bg-color" value="${settings.backgroundType === 'color' && settings.backgroundImage && settings.backgroundImage.startsWith('#') ? settings.backgroundImage : '#0f0f14'}" />
+                                <input type="text" class="settings-input settings-color-hex" id="set-bg-hex" value="${settings.backgroundType === 'color' && settings.backgroundImage && settings.backgroundImage.startsWith('#') ? settings.backgroundImage : '#0f0f14'}" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="settings-group">
+                        <div class="settings-group-title">Music</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Background music<small id="bg-music-label">${escapeHtml(settings.backgroundMusic || 'No music selected')}</small></div>
+                            <button class="btn-secondary" id="set-pick-music">Choose audio</button>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Loop music<small>Repeat background audio</small></div>
+                            <div class="toggle ${settings.musicLoop ? 'on' : ''}" id="set-music-loop"></div>
+                        </div>
+                        <div class="settings-row" style="${settings.backgroundMusic ? '' : 'display:none;'}" id="row-music-remove">
+                            <div class="settings-row-label">Remove music</div>
+                            <button class="btn-danger" id="set-remove-music">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-tab" data-tab-content="about">
+                    <div class="settings-group">
+                        <div class="settings-group-title">Browser</div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">sNET Browser<small>Version 1.3.0 · Electron + Ghostery Adblock</small></div>
+                        </div>
+                        <div class="settings-row">
+                            <div class="settings-row-label">Clear browsing history<small>Removes all history entries</small></div>
+                            <button class="btn-danger" id="set-clear-history">Clear</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        bindSettingsPageInto(pageEl);
+    }
+
+    function bindSettingsPageInto(pageEl) {
+        pageEl.querySelectorAll('.settings-nav-btn').forEach(btn => {
+            btn.onclick = () => {
+                pageEl.querySelectorAll('.settings-nav-btn').forEach(b => b.classList.remove('active'));
+                pageEl.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+                btn.classList.add('active');
+                pageEl.querySelector(`[data-tab-content="${btn.dataset.tab}"]`).classList.add('active');
+            };
+        });
+
+        const save = () => saveSettings();
+
+        pageEl.querySelector('#set-dark').onclick = (e) => {
+            settings.darkMode = !settings.darkMode;
+            e.target.classList.toggle('on', settings.darkMode);
+            applyTheme();
+            save();
+        };
+
+        const themeColor = pageEl.querySelector('#set-theme-color');
+        const themeHex = pageEl.querySelector('#set-theme-hex');
+        themeColor.oninput = () => { settings.themeColor = themeColor.value; themeHex.value = themeColor.value; applyTheme(); save(); };
+        themeHex.onchange = () => {
+            let v = themeHex.value.trim();
+            if (!v.startsWith('#')) v = '#' + v;
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) { settings.themeColor = v; themeColor.value = v; themeHex.value = v; applyTheme(); save(); }
+            else themeHex.value = settings.themeColor;
+        };
+
+        const accentColor = pageEl.querySelector('#set-accent-color');
+        const accentHex = pageEl.querySelector('#set-accent-hex');
+        accentColor.oninput = () => { settings.accentColor = accentColor.value; accentHex.value = accentColor.value; applyTheme(); save(); };
+        accentHex.onchange = () => {
+            let v = accentHex.value.trim();
+            if (!v.startsWith('#')) v = '#' + v;
+            if (/^#[0-9a-fA-F]{6}$/.test(v)) { settings.accentColor = v; accentColor.value = v; accentHex.value = v; applyTheme(); save(); }
+            else accentHex.value = settings.accentColor;
+        };
+
+        const bright = pageEl.querySelector('#set-brightness');
+        const brightVal = pageEl.querySelector('#set-brightness-val');
+        bright.oninput = () => {
+            settings.brightness = parseInt(bright.value);
+            brightVal.textContent = settings.brightness + '%';
+            applyTheme();
+        };
+        bright.onchange = () => save();
+
+        pageEl.querySelector('#set-home').onchange = (e) => {
+            let v = e.target.value.trim();
+            if (!v) settings.homePage = NEW_TAB_URL;
+            else { if (!v.startsWith('http')) v = 'https://' + v; settings.homePage = v; }
+            save();
+        };
+        pageEl.querySelector('#set-search').onchange = (e) => { settings.searchEngine = e.target.value; save(); };
+        pageEl.querySelector('#set-language').onchange = (e) => { settings.language = e.target.value; save(); renderNewTabIfActive(); };
+
+        pageEl.querySelector('#set-adblock').onclick = async (e) => {
+            settings.adblockEnabled = !settings.adblockEnabled;
+            e.target.classList.toggle('on', settings.adblockEnabled);
+            save();
+            try {
+                await window.electronAPI.setAdblockEnabled(settings.adblockEnabled);
+                adblockStatus.enabled = settings.adblockEnabled;
+            } catch (err) { console.error(err); }
+        };
+        pageEl.querySelector('#set-open-adblock').onclick = () => navigateToInternal(ADBLOCK_URL);
+
+        pageEl.querySelector('#set-pick-download').onclick = async () => {
+            const p = await window.electronAPI.selectDownloadFolder();
+            if (p) {
+                settings.downloadPath = p;
+                save();
+                const label = pageEl.querySelector('#set-pick-download').closest('.settings-row').querySelector('small');
+                if (label) label.textContent = p;
+            }
+        };
+        pageEl.querySelector('#set-open-downloads').onclick = () => navigateToInternal(DOWNLOADS_URL);
+        pageEl.querySelector('#set-dl-alert').onclick = (e) => {
+            settings.showDownloadAlert = !settings.showDownloadAlert;
+            e.target.classList.toggle('on', settings.showDownloadAlert);
+            save();
+        };
+
+        pageEl.querySelector('#set-bg-type').onchange = (e) => {
+            settings.backgroundType = e.target.value;
+            save();
+            const tv = e.target.value;
+            pageEl.querySelector('#row-bg-image').style.display = tv === 'image' ? 'flex' : 'none';
+            pageEl.querySelector('#row-bg-video').style.display = tv === 'video' ? 'flex' : 'none';
+            pageEl.querySelector('#row-bg-color').style.display = tv === 'color' ? 'flex' : 'none';
+        };
+        pageEl.querySelector('#set-pick-image').onclick = async () => {
+            const p = await window.electronAPI.pickBackgroundImage();
+            if (p) {
+                settings.backgroundImage = p;
+                settings.backgroundType = 'image';
+                save(); applyBackground();
+                const label = pageEl.querySelector('#bg-image-label');
+                if (label) label.textContent = p;
+                pageEl.querySelector('#set-bg-type').value = 'image';
+                pageEl.querySelector('#row-bg-image').style.display = 'flex';
+                pageEl.querySelector('#row-bg-video').style.display = 'none';
+                pageEl.querySelector('#row-bg-color').style.display = 'none';
+            }
+        };
+        pageEl.querySelector('#set-pick-video').onclick = async () => {
+            const p = await window.electronAPI.pickBackgroundVideo();
+            if (p) {
+                settings.backgroundVideo = p;
+                settings.backgroundType = 'video';
+                save(); applyBackground();
+                const label = pageEl.querySelector('#bg-video-label');
+                if (label) label.textContent = p;
+                pageEl.querySelector('#set-bg-type').value = 'video';
+                pageEl.querySelector('#row-bg-image').style.display = 'none';
+                pageEl.querySelector('#row-bg-video').style.display = 'flex';
+                pageEl.querySelector('#row-bg-color').style.display = 'none';
+            }
+        };
+
+        const bgColor = pageEl.querySelector('#set-bg-color');
+        const bgHex = pageEl.querySelector('#set-bg-hex');
+        if (bgColor && bgHex) {
+            bgColor.oninput = () => { settings.backgroundType = 'color'; settings.backgroundImage = bgColor.value; bgHex.value = bgColor.value; applyBackground(); save(); };
+            bgHex.onchange = () => {
+                let v = bgHex.value.trim();
+                if (!v.startsWith('#')) v = '#' + v;
+                if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+                    settings.backgroundType = 'color';
+                    settings.backgroundImage = v;
+                    bgColor.value = v; bgHex.value = v;
+                    applyBackground(); save();
+                } else bgHex.value = settings.backgroundImage || '#0f0f14';
+            };
+        }
+
+        pageEl.querySelector('#set-pick-music').onclick = async () => {
+            const p = await window.electronAPI.pickBackgroundMusic();
+            if (p) {
+                settings.backgroundMusic = p;
+                save(); applyMusic();
+                const label = pageEl.querySelector('#bg-music-label');
+                if (label) label.textContent = p;
+                pageEl.querySelector('#row-music-remove').style.display = 'flex';
+            }
+        };
+        pageEl.querySelector('#set-music-loop').onclick = (e) => {
+            settings.musicLoop = !settings.musicLoop;
+            e.target.classList.toggle('on', settings.musicLoop);
+            save();
+            if (bgAudio) bgAudio.loop = settings.musicLoop;
+        };
+        pageEl.querySelector('#set-remove-music').onclick = () => {
+            settings.backgroundMusic = null; save(); applyMusic();
+            const label = pageEl.querySelector('#bg-music-label');
+            if (label) label.textContent = 'No music selected';
+            pageEl.querySelector('#row-music-remove').style.display = 'none';
+        };
+
+        pageEl.querySelector('#set-clear-history').onclick = async () => {
+            await window.electronAPI.clearHistory();
+        };
+    }
+
+    // ==========================================
+    // HISTORY PAGE
+    // ==========================================
+    async function renderHistoryPageInto(pageEl) {
+        let allHistory = [];
+        try { allHistory = await window.electronAPI.getHistory() || []; } catch {}
+        let filtered = allHistory;
+        if (historySearchQuery) {
+            const q = historySearchQuery.toLowerCase();
+            filtered = allHistory.filter(h =>
+                (h.title || '').toLowerCase().includes(q) ||
+                (h.url || '').toLowerCase().includes(q)
+            );
+        }
+
+        const getDateLabel = (date) => {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today); yesterday.setDate(yesterday.getDate() - 1);
+            const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            if (d.getTime() === today.getTime()) return 'Today';
+            if (d.getTime() === yesterday.getTime()) return 'Yesterday';
+            return d.toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        };
+        const groups = {};
+        filtered.forEach(item => {
+            const label = getDateLabel(new Date(item.time));
+            if (!groups[label]) groups[label] = [];
+            groups[label].push(item);
+        });
+
+        let listHtml = '';
+        if (!filtered.length) {
+            listHtml = `<div class="empty-page"><div class="empty-page-icon">🕐</div><div class="empty-page-text">${historySearchQuery ? 'No results found' : 'History is empty'}</div></div>`;
+        } else {
+            listHtml = Object.entries(groups).map(([label, items]) => `
+                <div class="history-date-group">
+                    <div class="history-date-title">${escapeHtml(label)}</div>
+                    ${items.map(h => {
+                const timeStr = new Date(h.time).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+                return `<div class="history-item" data-url="${escapeHtml(h.url)}">
+                            <div class="history-icon">🌐</div>
+                            <div class="history-content">
+                                <div class="history-title">${escapeHtml(h.title || h.url)}</div>
+                                <div class="history-url">${escapeHtml(h.url)}</div>
+                            </div>
+                            <div class="history-time">${timeStr}</div>
+                            <button class="history-remove" data-remove="${escapeHtml(h.url)}" title="Remove">✕</button>
+                        </div>`;
+            }).join('')}
+                </div>
+            `).join('');
+        }
+
+        pageEl.innerHTML = `
+            <div class="snet-inner">
+                <div class="page-header">
+                    <div>
+                        <div class="snet-page-title">🕐 History</div>
+                        <div class="snet-page-subtitle">${filtered.length} ${filtered.length === 1 ? 'entry' : 'entries'}</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-secondary" id="history-refresh">⟳ Refresh</button>
+                        <button class="btn-danger" id="history-clear">Clear all</button>
+                    </div>
+                </div>
+                <div class="history-search-wrap">
+                    <span class="history-search-icon">🔍</span>
+                    <input type="text" class="history-search" id="history-search" placeholder="Search history..." value="${escapeHtml(historySearchQuery)}" />
+                </div>
+                <div id="history-list">${listHtml}</div>
+            </div>
+        `;
+
+        pageEl.querySelector('#history-refresh').onclick = () => renderHistoryPageInto(pageEl);
+        pageEl.querySelector('#history-clear').onclick = async () => {
+            if (!confirm('Clear all browsing history?')) return;
+            await window.electronAPI.clearHistory();
+            renderHistoryPageInto(pageEl);
+        };
+        const sInput = pageEl.querySelector('#history-search');
+        sInput.oninput = () => {
+            historySearchQuery = sInput.value.trim();
+            renderHistoryPageInto(pageEl);
+        };
+        pageEl.querySelectorAll('.history-item').forEach(item => {
+            item.onclick = (e) => {
+                if (e.target.closest('.history-remove')) return;
+                const url = item.dataset.url;
+                const tab = tabs.find(t => t.id === activeTabId);
+                if (!tab) return;
+                hideAllInternals(tab);
+                tab.webview.style.visibility = 'visible';
+                tab.url = url;
+                urlBar.value = url;
+                tab.webview.loadURL(url);
+            };
+        });
+        pageEl.querySelectorAll('[data-remove]').forEach(btn => {
+            btn.onclick = async (e) => {
+                e.stopPropagation();
+                await window.electronAPI.removeHistoryItem(btn.dataset.remove);
+                renderHistoryPageInto(pageEl);
+            };
+        });
+    }
+
+    // ==========================================
+    // DOWNLOADS PAGE
+    // ==========================================
+    function renderDownloadsPageInto(pageEl) {
+        let filtered = downloads;
+        if (downloadsFilter !== 'all') {
+            if (downloadsFilter === 'cancelled') {
+                filtered = downloads.filter(d => d.state === 'cancelled' || d.state === 'interrupted');
+            } else {
+                filtered = downloads.filter(d => d.state === downloadsFilter);
+            }
+        }
+
+        let listHtml = '';
+        if (!filtered.length) {
+            listHtml = `<div class="empty-page"><div class="empty-page-icon">📥</div><div class="empty-page-text">${downloadsFilter === 'all' ? 'No downloads yet' : 'No files in this category'}</div></div>`;
+        } else {
+            listHtml = filtered.map(d => {
+                const realIdx = downloads.indexOf(d);
+                const progress = d.totalBytes > 0 ? (d.receivedBytes / d.totalBytes * 100) : 0;
+                const isDone = d.state === 'completed';
+                const isCancelled = d.state === 'cancelled' || d.state === 'interrupted';
+                const barClass = isDone ? 'completed' : isCancelled ? 'cancelled' : '';
+                const statusClass = isDone ? 'completed' : isCancelled ? 'cancelled' : 'progressing';
+                const statusText = isDone ? 'Completed' : isCancelled ? 'Cancelled' : `${progress.toFixed(0)}%`;
+                return `<div class="download-item-page">
+                    <div class="download-page-row">
+                        <div class="download-file-wrap">
+                            <div class="download-file-icon">${getFileIcon(d.filename)}</div>
+                            <div style="min-width:0;flex:1;">
+                                <div class="download-page-name" title="${escapeHtml(d.filename)}">${escapeHtml(d.filename)}</div>
+                                <div class="download-page-path" title="${escapeHtml(d.path || '')}">${escapeHtml(d.path || '')}</div>
+                            </div>
+                        </div>
+                        <div class="download-page-size">${formatBytes(d.receivedBytes)} / ${formatBytes(d.totalBytes)}</div>
+                    </div>
+                    <div class="download-page-bar">
+                        <div class="download-page-bar-fill ${barClass}" style="width:${isDone ? 100 : progress}%"></div>
+                    </div>
+                    <div class="download-page-status">
+                        <div class="download-status-label">
+                            <span class="status-dot ${statusClass}"></span>
+                            ${statusText}
+                        </div>
+                        <div class="download-page-actions">
+                            ${isDone ? `<button class="btn-small" data-open="${realIdx}">Open</button>
+                                        <button class="btn-small" data-folder="${realIdx}">Show in Folder</button>` : ''}
+                            <button class="btn-small danger" data-remove="${realIdx}">Remove</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        pageEl.innerHTML = `
+            <div class="snet-inner">
+                <div class="page-header">
+                    <div>
+                        <div class="snet-page-title">⬇ Downloads</div>
+                        <div class="snet-page-subtitle">${filtered.length} ${filtered.length === 1 ? 'file' : 'files'}</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-secondary" id="dl-refresh">⟳ Refresh</button>
+                        <button class="btn-secondary" id="dl-open-folder">📁 Open folder</button>
+                        <button class="btn-danger" id="dl-clear">Clear list</button>
+                    </div>
+                </div>
+                <div class="downloads-filters">
+                    <button class="filter-btn ${downloadsFilter === 'all' ? 'active' : ''}" data-filter="all">All</button>
+                    <button class="filter-btn ${downloadsFilter === 'progressing' ? 'active' : ''}" data-filter="progressing">In progress</button>
+                    <button class="filter-btn ${downloadsFilter === 'completed' ? 'active' : ''}" data-filter="completed">Completed</button>
+                    <button class="filter-btn ${downloadsFilter === 'cancelled' ? 'active' : ''}" data-filter="cancelled">Cancelled</button>
+                </div>
+                <div id="downloads-list">${listHtml}</div>
+            </div>
+        `;
+
+        pageEl.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.onclick = () => {
+                downloadsFilter = btn.dataset.filter;
+                renderDownloadsPageInto(pageEl);
+            };
+        });
+        pageEl.querySelector('#dl-refresh').onclick = () => renderDownloadsPageInto(pageEl);
+        pageEl.querySelector('#dl-open-folder').onclick = () => window.electronAPI.openDownloadsFolder();
+        pageEl.querySelector('#dl-clear').onclick = () => {
+            if (!confirm('Clear the download list? Files on disk will not be deleted.')) return;
+            downloads = [];
+            renderDownloadsPageInto(pageEl);
+        };
+        pageEl.querySelectorAll('[data-open]').forEach(b => {
+            b.onclick = () => { const d = downloads[+b.dataset.open]; if (d) window.electronAPI.openFile(d.path); };
+        });
+        pageEl.querySelectorAll('[data-folder]').forEach(b => {
+            b.onclick = () => { const d = downloads[+b.dataset.folder]; if (d) window.electronAPI.showInFolder(d.path); };
+        });
+        pageEl.querySelectorAll('[data-remove]').forEach(b => {
+            b.onclick = () => { downloads.splice(+b.dataset.remove, 1); renderDownloadsPageInto(pageEl); };
+        });
+    }
+
+    // ==========================================
+    // EXTENSIONS PAGE
+    // ==========================================
+    async function renderExtensionsPageInto(pageEl) {
+        let installedExts = [];
+        try { installedExts = await window.electronAPI.getInstalledExtensions() || []; } catch {}
+        try { adblockStatus = await window.electronAPI.getAdblockStatus(); } catch {}
+
+        pageEl.innerHTML = `
+            <div class="snet-inner">
+                <div class="page-header">
+                    <div>
+                        <div class="snet-page-title">🧩 Extensions</div>
+                        <div class="snet-page-subtitle">Manage your browser extensions · ${installedExts.length} installed from store</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-primary" id="ext-open-store">🛒 Chrome Web Store</button>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Security</div>
+                    <div class="ext-card">
+                        <div class="ext-icon">🛡️</div>
+                        <div class="ext-info">
+                            <div class="ext-name">Site Blocker</div>
+                            <div class="ext-desc">Block websites with a password</div>
+                            <button class="btn-small" id="ext-open-adblock" style="margin-top:8px;">Open Site Blocker</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Ad Blocking</div>
+                    <div class="ext-card">
+                        <div class="ext-icon">🚫</div>
+                        <div class="ext-info">
+                            <div class="ext-name">Ghostery Ad Blocker${adblockStatus.enabled ? '<span class="ext-badge-live">ACTIVE</span>' : '<span class="ext-badge-pending">OFF</span>'}</div>
+                            <div class="ext-desc">Blocks ads & trackers network-wide · YouTube exempted so videos load normally</div>
+                            <div class="toggle ${adblockStatus.enabled ? 'on' : ''}" id="ext-toggle-adblock" data-adblock-toggle></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <div class="settings-group-title">Installed from Chrome Web Store</div>
+                    ${installedExts.length === 0 ? `
+                        <div class="empty-page" style="padding:30px;">
+                            <div class="empty-page-icon" style="font-size:36px;">🧩</div>
+                            <div class="empty-page-text" style="font-size:13px;">No extensions installed yet</div>
+                            <button class="btn-primary" id="ext-open-store-2">Open Chrome Web Store</button>
+                        </div>
+                    ` : installedExts.map(ext => `
+                        <div class="ext-card" style="margin-bottom:8px;">
+                            <div class="ext-icon">${ext.icon || '🧩'}</div>
+                            <div class="ext-info">
+                                <div class="ext-name">${escapeHtml(ext.name)}</div>
+                                <div class="ext-desc">${escapeHtml(ext.desc)}</div>
+                                <div class="toggle ${ext.enabled ? 'on' : ''}" data-installed-id="${ext.id}"></div>
+                            </div>
+                            <button class="btn-danger" style="padding:6px 12px;font-size:12px;" data-remove-installed="${ext.id}">Remove</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const openStore = () => {
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (!tab) return;
+            hideAllInternals(tab);
+            tab.webview.style.visibility = 'visible';
+            tab.url = CHROME_STORE_URL;
+            urlBar.value = CHROME_STORE_URL;
+            tab.webview.loadURL(CHROME_STORE_URL);
+        };
+        pageEl.querySelector('#ext-open-store').onclick = openStore;
+        const openStore2 = pageEl.querySelector('#ext-open-store-2');
+        if (openStore2) openStore2.onclick = openStore;
+
+        const openAdblock = pageEl.querySelector('#ext-open-adblock');
+        if (openAdblock) openAdblock.onclick = () => navigateToInternal(ADBLOCK_URL);
+
+        const adblockToggle = pageEl.querySelector('[data-adblock-toggle]');
+        if (adblockToggle) {
+            adblockToggle.onclick = async (e) => {
+                e.stopPropagation();
+                const newState = !adblockStatus.enabled;
+                adblockToggle.classList.toggle('on', newState);
+                try {
+                    await window.electronAPI.setAdblockEnabled(newState);
+                    adblockStatus.enabled = newState;
+                    settings.adblockEnabled = newState;
+                    saveSettings();
+                    renderExtensionsPageInto(pageEl);
+                } catch (err) { console.error(err); }
+            };
+        }
+
+        pageEl.querySelectorAll('[data-installed-id]').forEach(toggle => {
+            toggle.onclick = async (e) => {
+                e.stopPropagation();
+                const id = toggle.dataset.installedId;
+                const isEnabled = toggle.classList.contains('on');
+                toggle.classList.toggle('on', !isEnabled);
+                await window.electronAPI.toggleInstalledExtension(id, !isEnabled);
+            };
+        });
+
+        pageEl.querySelectorAll('[data-remove-installed]').forEach(btn => {
+            btn.onclick = async () => {
+                if (!confirm('Remove this extension?')) return;
+                await window.electronAPI.removeInstalledExtension(btn.dataset.removeInstalled);
+                renderExtensionsPageInto(pageEl);
+            };
+        });
+    }
+
+    // ==========================================
+    // SITE BLOCKER PAGE
+    // ==========================================
+    async function renderAdblockPageInto(pageEl) {
+        const data = await window.electronAPI.getSiteBlocker();
+        const hasPassword = data.hasPassword;
+        const sites = data.sites || [];
+
+        if (!hasPassword) {
+            pageEl.innerHTML = `
+                <div class="snet-inner">
+                    <div class="snet-page-title">🛡️ Site Blocker</div>
+                    <div class="snet-page-subtitle">Set a password to protect the block list</div>
+                    <div class="adblock-lock-screen">
+                        <div class="adblock-lock-icon">🔐</div>
+                        <div class="adblock-lock-title">Create Password</div>
+                        <div class="adblock-lock-subtitle">This password will be required to add or remove blocked sites, and to access blocked sites.</div>
+                        <input type="password" class="adblock-password-input" id="adblock-new-pass" placeholder="New password" autocomplete="new-password" />
+                        <input type="password" class="adblock-password-input" id="adblock-confirm-pass" placeholder="Confirm password" autocomplete="new-password" />
+                        <div class="adblock-error" id="adblock-error"></div>
+                        <button class="adblock-btn" id="adblock-set-pass">Set Password</button>
+                    </div>
+                </div>
+            `;
+            pageEl.querySelector('#adblock-set-pass').onclick = async () => {
+                const p1 = pageEl.querySelector('#adblock-new-pass').value;
+                const p2 = pageEl.querySelector('#adblock-confirm-pass').value;
+                const err = pageEl.querySelector('#adblock-error');
+                if (!p1 || p1.length < 4) { err.textContent = 'Password must be at least 4 characters'; return; }
+                if (p1 !== p2) { err.textContent = 'Passwords do not match'; return; }
+                const res = await window.electronAPI.setSiteBlockerPassword(null, p1);
+                if (res.success) {
+                    adblockSessionPassword = p1;
+                    renderAdblockPageInto(pageEl);
+                } else {
+                    err.textContent = res.error || 'Failed';
+                }
+            };
+            return;
+        }
+
+        if (!adblockSessionPassword) {
+            pageEl.innerHTML = `
+                <div class="snet-inner">
+                    <div class="snet-page-title">🛡️ Site Blocker</div>
+                    <div class="snet-page-subtitle">Enter password to manage blocked sites</div>
+                    <div class="adblock-lock-screen">
+                        <div class="adblock-lock-icon">🔒</div>
+                        <div class="adblock-lock-title">Locked</div>
+                        <div class="adblock-lock-subtitle">Enter your password to access the block list.</div>
+                        <input type="password" class="adblock-password-input" id="adblock-unlock-pass" placeholder="Password" autocomplete="off" />
+                        <div class="adblock-error" id="adblock-error"></div>
+                        <button class="adblock-btn" id="adblock-unlock">Unlock</button>
+                    </div>
+                </div>
+            `;
+            pageEl.querySelector('#adblock-unlock').onclick = async () => {
+                const p = pageEl.querySelector('#adblock-unlock-pass').value;
+                const err = pageEl.querySelector('#adblock-error');
+                const ok = await window.electronAPI.verifySiteBlockerPassword(p);
+                if (ok) {
+                    adblockSessionPassword = p;
+                    renderAdblockPageInto(pageEl);
+                } else {
+                    err.textContent = 'Wrong password';
+                }
+            };
+            pageEl.querySelector('#adblock-unlock-pass').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') pageEl.querySelector('#adblock-unlock').click();
+            });
+            setTimeout(() => pageEl.querySelector('#adblock-unlock-pass')?.focus(), 100);
+            return;
+        }
+
+        pageEl.innerHTML = `
+            <div class="snet-inner">
+                <div class="page-header">
+                    <div>
+                        <div class="snet-page-title">🛡️ Site Blocker</div>
+                        <div class="snet-page-subtitle">${sites.length} ${sites.length === 1 ? 'site' : 'sites'} blocked</div>
+                    </div>
+                    <div class="page-actions">
+                        <button class="btn-secondary" id="adblock-lock">🔒 Lock</button>
+                        <button class="btn-danger" id="adblock-change-pass">Change Password</button>
+                    </div>
+                </div>
+                <div class="adblock-site-input-wrap">
+                    <input type="text" class="adblock-site-input" id="adblock-new-site" placeholder="e.g. youtube.com or facebook.com" autocomplete="off" />
+                    <button class="adblock-btn" style="width:auto;padding:11px 24px;" id="adblock-add-site">+ Add Site</button>
+                </div>
+                <div class="adblock-error" id="adblock-error" style="text-align:left;margin-bottom:8px;"></div>
+                <div id="adblock-sites-list">
+                    ${sites.length === 0 ? `
+                        <div class="empty-page" style="padding:60px 20px;">
+                            <div class="empty-page-icon">🛡️</div>
+                            <div class="empty-page-text">No sites blocked yet</div>
+                        </div>
+                    ` : sites.map(site => `
+                        <div class="adblock-site-item">
+                            <div class="adblock-site-icon">🌐</div>
+                            <div class="adblock-site-url">${escapeHtml(site)}</div>
+                            <button class="btn-small danger" data-remove-site="${escapeHtml(site)}">Remove</button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        pageEl.querySelector('#adblock-lock').onclick = () => {
+            adblockSessionPassword = null;
+            renderAdblockPageInto(pageEl);
+        };
+
+        pageEl.querySelector('#adblock-change-pass').onclick = () => {
+            const inner = pageEl.querySelector('.snet-inner');
+            inner.innerHTML = `
+                <div class="snet-page-title">🛡️ Change Password</div>
+                <div class="snet-page-subtitle">Enter old and new password</div>
+                <div class="adblock-lock-screen">
+                    <div class="adblock-lock-icon">🔑</div>
+                    <input type="password" class="adblock-password-input" id="adblock-old-pass" placeholder="Current password" autocomplete="off" />
+                    <input type="password" class="adblock-password-input" id="adblock-new-pass2" placeholder="New password" autocomplete="off" />
+                    <input type="password" class="adblock-password-input" id="adblock-confirm-pass2" placeholder="Confirm new password" autocomplete="off" />
+                    <div class="adblock-error" id="adblock-error"></div>
+                    <button class="adblock-btn" id="adblock-do-change">Change Password</button>
+                    <button class="btn-secondary" id="adblock-cancel-change" style="width:100%;">Cancel</button>
+                </div>
+            `;
+            inner.querySelector('#adblock-cancel-change').onclick = () => renderAdblockPageInto(pageEl);
+            inner.querySelector('#adblock-do-change').onclick = async () => {
+                const oldP = inner.querySelector('#adblock-old-pass').value;
+                const newP = inner.querySelector('#adblock-new-pass2').value;
+                const confirmP = inner.querySelector('#adblock-confirm-pass2').value;
+                const err = inner.querySelector('#adblock-error');
+                if (newP.length < 4) { err.textContent = 'New password too short'; return; }
+                if (newP !== confirmP) { err.textContent = 'Passwords do not match'; return; }
+                const res = await window.electronAPI.setSiteBlockerPassword(oldP, newP);
+                if (res.success) {
+                    adblockSessionPassword = newP;
+                    renderAdblockPageInto(pageEl);
+                } else {
+                    err.textContent = res.error || 'Failed';
+                }
+            };
+        };
+
+        const addSite = async () => {
+            const input = pageEl.querySelector('#adblock-new-site');
+            const err = pageEl.querySelector('#adblock-error');
+            let site = input.value.trim().toLowerCase();
+            if (!site) return;
+            site = site.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '');
+            if (!site.includes('.')) { err.textContent = 'Invalid domain'; return; }
+            const res = await window.electronAPI.addBlockedSite(adblockSessionPassword, site);
+            if (res.success) {
+                renderAdblockPageInto(pageEl);
+            } else {
+                err.textContent = res.error || 'Failed';
+            }
+        };
+        pageEl.querySelector('#adblock-add-site').onclick = addSite;
+        pageEl.querySelector('#adblock-new-site').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') addSite();
+        });
+
+        pageEl.querySelectorAll('[data-remove-site]').forEach(btn => {
+            btn.onclick = async () => {
+                const res = await window.electronAPI.removeBlockedSite(adblockSessionPassword, btn.dataset.removeSite);
+                if (res.success) renderAdblockPageInto(pageEl);
+            };
+        });
+    }
+
+    // ==========================================
+    // BLOCKED SITE OVERLAY
+    // ==========================================
+    function showBlockedOverlay(tab, blockedUrl, site) {
+        if (isUrlUnlockedForTab(tab.id, blockedUrl)) return;
+
+        let overlay = tab.container.querySelector('.adblock-locked-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.className = 'adblock-locked-overlay';
+            tab.container.appendChild(overlay);
+        }
+        overlay.innerHTML = `
+            <div class="adblock-locked-icon">🚫</div>
+            <div class="adblock-locked-title">Site Blocked</div>
+            <div class="adblock-locked-subtitle">This site is blocked by Site Blocker. Enter your password to unlock.</div>
+            <div class="adblock-locked-url">${escapeHtml(blockedUrl)}</div>
+            <div class="adblock-unlock-wrap">
+                <input type="password" class="adblock-password-input" id="adblock-overlay-pass" placeholder="Password" autocomplete="off" />
+                <div class="adblock-error" id="adblock-overlay-error"></div>
+                <button class="adblock-btn" id="adblock-overlay-unlock">Unlock & Visit</button>
+                <button class="btn-secondary" id="adblock-overlay-back" style="width:100%;">Go Back</button>
+            </div>
+        `;
+        overlay.classList.add('active');
+
+        const tryUnlock = async () => {
+            const p = overlay.querySelector('#adblock-overlay-pass').value;
+            const err = overlay.querySelector('#adblock-overlay-error');
+            const ok = await window.electronAPI.verifySiteBlockerPassword(p);
+            if (!ok) { err.textContent = 'Wrong password'; return; }
+
+            unlockUrlForTab(tab.id, blockedUrl);
+            overlay.classList.remove('active');
+            try { tab.webview.loadURL(blockedUrl); } catch {}
+        };
+        overlay.querySelector('#adblock-overlay-unlock').onclick = tryUnlock;
+        overlay.querySelector('#adblock-overlay-pass').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') tryUnlock();
+        });
+        overlay.querySelector('#adblock-overlay-back').onclick = () => {
+            overlay.classList.remove('active');
+            if (tab.webview.canGoBack()) tab.webview.goBack();
+            else tab.webview.loadURL('about:blank');
+        };
+        setTimeout(() => overlay.querySelector('#adblock-overlay-pass')?.focus(), 100);
+    }
+
+    function hideBlockedOverlay(tab) {
+        const overlay = tab.container.querySelector('.adblock-locked-overlay');
+        if (overlay) overlay.classList.remove('active');
+    }
+
+    // ==========================================
+    // Tab management
+    // ==========================================
+    async function loadSettings() {
+        try {
+            const s = await window.electronAPI.getSettings();
+            if (s) {
+                if (!s.homePage) s.homePage = NEW_TAB_URL;
+                settings = { ...settings, ...s };
+            }
+        } catch {}
+        applyTheme();
+        applyBackground();
+        applyMusic();
+        try { adblockStatus = await window.electronAPI.getAdblockStatus(); } catch {}
+        await loadShortcuts();
+        await loadSidebarItems();
+        const startUrl = settings.homePage || NEW_TAB_URL;
+        if (tabs.length === 0) createTab(startUrl);
+    }
+    async function saveSettings() {
+        try { await window.electronAPI.saveSettings(settings); } catch {}
+    }
+
+    function createTab(url, incognito = false) {
+        if (!url) url = settings.homePage || NEW_TAB_URL;
+        const isNewTab = (url === NEW_TAB_URL);
+        const id = ++tabCounter;
+        const tabEl = document.createElement('div');
+        tabEl.className = 'tab' + (incognito ? ' incognito-tab' : '');
+        tabEl.dataset.id = id;
+        tabEl.innerHTML = `<span class="tab-title">${incognito ? '🕶 ' : ''}New Tab</span><button class="tab-close" title="Close">✕</button>`;
+        tabBar.insertBefore(tabEl, document.getElementById('new-tab'));
+        const container = document.createElement('div');
+        container.className = 'webview-container';
+        container.dataset.id = id;
+        const wv = document.createElement('webview');
+        wv.setAttribute('allowpopups', '');
+        wv.setAttribute('src', isNewTab ? 'about:blank' : url);
+        container.appendChild(wv);
+        content.appendChild(container);
+        const tab = { id, tabEl, container, webview: wv, title: 'New Tab', url, incognito, internal: null };
+        tabs.push(tab);
+        tabEl.onclick = (e) => { if (e.target.classList.contains('tab-close')) return; activateTab(id); };
+        tabEl.querySelector('.tab-close').onclick = (e) => { e.stopPropagation(); closeTab(id); };
+        if (isNewTab) {
+            wv.style.visibility = 'hidden';
+            renderNewTab(tab);
+        }
+
+        wv.addEventListener('did-start-loading', () => { if (activeTabId === id) loadingBar.classList.add('active'); });
+        wv.addEventListener('did-stop-loading', () => { if (activeTabId === id) { loadingBar.classList.remove('active'); updateNavButtons(); } });
+        wv.addEventListener('page-title-updated', (e) => {
+            tab.title = e.title || 'New Tab';
+            tabEl.querySelector('.tab-title').textContent = (incognito ? '🕶 ' : '') + tab.title;
+        });
+
+        wv.addEventListener('will-navigate', async (e) => {
+            if (e.url === 'about:blank' || !e.url.startsWith('http')) return;
+            if (isUrlUnlockedForTab(id, e.url)) return;
+            try {
+                const check = await window.electronAPI.checkBlockedSite(e.url);
+                if (check.blocked) {
+                    e.preventDefault();
+                    showBlockedOverlay(tab, e.url, check.site);
+                }
+            } catch {}
+        });
+
+        wv.addEventListener('did-navigate', async (e) => {
+            if (activeTabId === id) {
+                if (e.url === 'about:blank') {
+                    wv.style.visibility = 'hidden';
+                    renderNewTab(tab);
+                } else {
+                    urlBar.value = e.url;
+                    wv.style.visibility = 'visible';
+                    hideAllInternals(tab);
+                    tab.url = e.url;
+                }
+            }
+            updateNavButtons();
+            if (!incognito) addHistory(e.url, tab.title);
+
+            if (e.url && e.url.startsWith('http')) {
+                if (isUrlUnlockedForTab(id, e.url)) {
+                    hideBlockedOverlay(tab);
+                    return;
+                }
+                try {
+                    const check = await window.electronAPI.checkBlockedSite(e.url);
+                    if (check.blocked) {
+                        showBlockedOverlay(tab, e.url, check.site);
+                    } else {
+                        hideBlockedOverlay(tab);
+                    }
+                } catch {}
+            }
+        });
+        wv.addEventListener('did-navigate-in-page', (e) => {
+            if (activeTabId === id && e.url !== 'about:blank') urlBar.value = e.url;
+            updateNavButtons();
+        });
+
+        // ===== Context menu — webview üçün sağ klik hadisəsi =====
+        wv.addEventListener('context-menu', (e) => {
+            const params = {
+                linkURL: e.params?.linkURL || '',
+                srcURL: e.params?.srcURL || '',
+                selectionText: e.params?.selectionText || '',
+                pageURL: e.params?.pageURL || e.url || '',
+                isEditable: !!e.params?.isEditable,
+                editFlags: e.params?.editFlags || {}
+            };
+            openContextMenu(params, e.params?.x || 0, e.params?.y || 0);
+        });
+
+        activateTab(id);
+    }
+
+    async function addHistory(url, title) {
+        if (!url || url.startsWith('about:') || url.startsWith('blob:') || url.startsWith('snet:')) return;
+        try { await window.electronAPI.addHistory({ url, title: title || url }); } catch {}
+    }
+
+    function activateTab(id) {
+        activeTabId = id;
+        tabs.forEach(t => {
+            const isActive = t.id === id;
+            t.tabEl.classList.toggle('active', isActive);
+            t.container.classList.toggle('active', isActive);
+        });
+        const tab = tabs.find(t => t.id === id);
+        if (!tab) return;
+
+        const newtabDiv = tab.container.querySelector('.newtab-page');
+        const snetPage = tab.container.querySelector('.snet-page');
+        if (newtabDiv) newtabDiv.classList.remove('active');
+        if (snetPage) snetPage.classList.remove('active');
+
+        if (tab.internal === 'newtab') {
+            urlBar.value = '';
+            tab.webview.style.visibility = 'hidden';
+            if (newtabDiv) newtabDiv.classList.add('active');
+        } else if (tab.internal === 'settings' || tab.internal === 'downloads' || tab.internal === 'history' || tab.internal === 'extensions' || tab.internal === 'adblock') {
+            urlBar.value = tab.url;
+            tab.webview.style.visibility = 'hidden';
+            if (snetPage) snetPage.classList.add('active');
+        } else if (!tab.webview.getURL() || tab.webview.getURL() === 'about:blank') {
+            urlBar.value = '';
+            tab.webview.style.visibility = 'hidden';
+            if (newtabDiv) { newtabDiv.classList.add('active'); tab.internal = 'newtab'; }
+            else { renderNewTab(tab); }
+        } else {
+            urlBar.value = tab.webview.getURL();
+            tab.webview.style.visibility = 'visible';
+        }
+        updateNavButtons();
+    }
+
+    function closeTab(id) {
+        const idx = tabs.findIndex(t => t.id === id);
+        if (idx === -1) return;
+        const tab = tabs[idx];
+        tab.tabEl.remove();
+        tab.container.remove();
+        tabs.splice(idx, 1);
+        delete newTabShowAll[id];
+        unlockedUrlsByTab.delete(id);
+        if (activeTabId === id) {
+            if (tabs.length > 0) {
+                const next = tabs[Math.max(0, idx - 1)];
+                activateTab(next.id);
+            } else {
+                activeTabId = null;
+                urlBar.value = '';
+                createTab(settings.homePage);
+            }
+        }
+    }
+
+    // ==========================================
+    // Navigation
+    // ==========================================
+    function updateNavButtons() {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        backBtn.disabled = !tab.webview.canGoBack();
+        forwardBtn.disabled = !tab.webview.canGoForward();
+    }
+    backBtn.onclick = () => {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab && tab.webview.canGoBack()) tab.webview.goBack();
+    };
+    forwardBtn.onclick = () => {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab && tab.webview.canGoForward()) tab.webview.goForward();
+    };
+    document.getElementById('reload').onclick = () => {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        const pageEl = tab.container.querySelector('.snet-page');
+        if (tab.internal === 'newtab') renderNewTab(tab);
+        else if (tab.internal === 'settings' && pageEl) renderSettingsPageInto(pageEl);
+        else if (tab.internal === 'downloads' && pageEl) renderDownloadsPageInto(pageEl);
+        else if (tab.internal === 'history' && pageEl) renderHistoryPageInto(pageEl);
+        else if (tab.internal === 'extensions' && pageEl) renderExtensionsPageInto(pageEl);
+        else if (tab.internal === 'adblock' && pageEl) renderAdblockPageInto(pageEl);
+        else tab.webview.reload();
+    };
+    document.getElementById('home').onclick = () => {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        hideAllInternals(tab);
+        tab.url = settings.homePage;
+        if (settings.homePage === NEW_TAB_URL) tab.webview.loadURL('about:blank');
+        else tab.webview.loadURL(settings.homePage);
+    };
+
+    function navigate(input) {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        let url = input.trim();
+        if (!url) return;
+        if (url === SETTINGS_URL || url === 'snet://settings') return navigateToInternal(SETTINGS_URL);
+        if (url === DOWNLOADS_URL || url === 'snet://downloads') return navigateToInternal(DOWNLOADS_URL);
+        if (url === HISTORY_URL || url === 'snet://history') return navigateToInternal(HISTORY_URL);
+        if (url === EXTENSIONS_URL || url === 'snet://extensions') return navigateToInternal(EXTENSIONS_URL);
+        if (url === ADBLOCK_URL || url === 'snet://adblock') return navigateToInternal(ADBLOCK_URL);
+        hideAllInternals(tab);
+        tab.webview.style.visibility = 'visible';
+        tab.url = url;
+        if (!url.includes('.') || url.includes(' ')) {
+            const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
+            url = engine.url + encodeURIComponent(url);
+        } else if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) {
+            url = 'https://' + url;
+        }
+        tab.webview.loadURL(url);
+    }
+
+    urlBar.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(urlBar.value); urlBar.blur(); } });
+    urlBar.addEventListener('focus', () => urlBar.select());
+    document.getElementById('new-tab').onclick = () => createTab();
+
+    // ==========================================
+    // CONTEXT MENU — build & show
+    // ==========================================
+    function openContextMenu(params, x, y) {
+        const items = [];
+        const push = (icon, label, cmd, shortcut, danger) => {
+            items.push({ icon, label, cmd, shortcut, danger });
+        };
+        const pushDivider = () => items.push({ divider: true });
+        const pushHeader = (text) => items.push({ header: text });
+
+        if (params.linkURL) {
+            pushHeader('Link');
+            push('🔗', 'Open link in new tab', { cmd: 'open-link-new-tab', url: params.linkURL });
+            push('📌', 'Open link in sidebar', { cmd: 'open-link-sidebar', url: params.linkURL });
+            push('📋', 'Copy link address', { cmd: 'copy-link', url: params.linkURL });
+            pushDivider();
+        }
+
+        if (params.srcURL && !params.linkURL) {
+            pushHeader('Image');
+            push('🖼', 'Search image with Google Lens', { cmd: 'lens', imageUrl: params.srcURL });
+            push('💾', 'Save image as...', { cmd: 'save-image', url: params.srcURL });
+            push('📋', 'Copy image address', { cmd: 'copy-image', url: params.srcURL });
+            pushDivider();
+        }
+
+        if (params.selectionText && params.selectionText.trim()) {
+            const txt = params.selectionText.trim();
+            const preview = txt.length > 30 ? txt.slice(0, 30) + '…' : txt;
+            pushHeader('Selection');
+            push('🤖', `Search with AI: "${preview}"`, { cmd: 'ai-search', text: txt });
+            push('🔍', 'Search with Google', { cmd: 'google-search', text: txt });
+            push('📋', 'Copy', { cmd: 'copy-text', text: txt }, 'Ctrl+C');
+            pushDivider();
+        }
+
+        if (params.isEditable) {
+            pushHeader('Edit');
+            push('✂', 'Cut', { cmd: 'cut' }, 'Ctrl+X');
+            push('📋', 'Copy', { cmd: 'copy' }, 'Ctrl+C');
+            push('📋', 'Paste', { cmd: 'paste' }, 'Ctrl+V');
+            push('✓', 'Select all', { cmd: 'select-all' }, 'Ctrl+A');
+            pushDivider();
+        }
+
+        push('⬅', 'Back', { cmd: 'back' });
+        push('➡', 'Forward', { cmd: 'forward' });
+        push('⟳', 'Reload', { cmd: 'reload' }, 'Ctrl+R');
+        pushDivider();
+        push('📄', 'View page source', { cmd: 'view-source', url: params.pageURL }, 'Ctrl+U');
+        push('🔧', 'Inspect', { cmd: 'inspect', url: params.pageURL }, 'Ctrl+Shift+I');
+
+        ctxMenu.innerHTML = items.map(it => {
+            if (it.divider) return '<div class="ctx-divider"></div>';
+            if (it.header) return `<div class="ctx-header">${escapeHtml(it.header)}</div>`;
+            const dangerCls = it.danger ? ' danger' : '';
+            const sc = it.shortcut ? `<span class="ctx-shortcut">${escapeHtml(it.shortcut)}</span>` : '';
+            return `<div class="ctx-item${dangerCls}" data-cmd='${escapeHtml(JSON.stringify(it.cmd))}'>
+                <span class="ctx-icon">${it.icon}</span>
+                <span class="ctx-label">${escapeHtml(it.label)}</span>
+                ${sc}
+            </div>`;
+        }).join('');
+
+        ctxMenu.querySelectorAll('.ctx-item').forEach(el => {
+            el.onclick = () => {
+                try {
+                    const cmd = JSON.parse(el.dataset.cmd);
+                    handleContextCommand(cmd);
+                } catch {}
+                closeContextMenu();
+            };
+        });
+
+        ctxMenu.classList.add('open');
+
+        const menuW = ctxMenu.offsetWidth || 280;
+        const menuH = ctxMenu.offsetHeight || 300;
+        const padding = 8;
+        let posX = x + 4;
+        let posY = y + 4;
+        if (posX + menuW > window.innerWidth - padding) posX = window.innerWidth - menuW - padding;
+        if (posY + menuH > window.innerHeight - padding) posY = window.innerHeight - menuH - padding;
+        if (posX < padding) posX = padding;
+        if (posY < padding) posY = padding;
+        ctxMenu.style.left = posX + 'px';
+        ctxMenu.style.top = posY + 'px';
+    }
+
+    function closeContextMenu() {
+        ctxMenu.classList.remove('open');
+    }
+
+    function handleContextCommand(cmd) {
+        if (!cmd || !cmd.cmd) return;
+        const tab = tabs.find(t => t.id === activeTabId);
+
+        switch (cmd.cmd) {
+            case 'open-link-new-tab':
+                createTab(cmd.url);
+                break;
+            case 'open-link-sidebar':
+                openSidebarLink(cmd.url);
+                break;
+            case 'copy-link':
+            case 'copy-image':
+                navigator.clipboard.writeText(cmd.url || '').catch(() => {});
+                break;
+            case 'copy-text':
+                navigator.clipboard.writeText(cmd.text || '').catch(() => {});
+                break;
+            case 'lens':
+                if (cmd.imageUrl) {
+                    const lensUrl = 'https://lens.google.com/uploadbyurl?url=' + encodeURIComponent(cmd.imageUrl);
+                    createTab(lensUrl);
+                }
+                break;
+            case 'ai-search':
+                if (cmd.text) {
+                    // Google AI Mode
+                    const aiUrl = 'https://www.google.com/search?q=' + encodeURIComponent(cmd.text) + '&udm=50';
+                    createTab(aiUrl);
+                }
+                break;
+            case 'google-search':
+                if (cmd.text) {
+                    const engine = SEARCH_ENGINES[settings.searchEngine] || SEARCH_ENGINES.google;
+                    createTab(engine.url + encodeURIComponent(cmd.text));
+                }
+                break;
+            case 'save-image':
+                if (cmd.url && tab) {
+                    try { tab.webview.downloadURL(cmd.url); } catch {}
+                }
+                break;
+            case 'back':
+                if (tab && tab.webview.canGoBack()) tab.webview.goBack();
+                break;
+            case 'forward':
+                if (tab && tab.webview.canGoForward()) tab.webview.goForward();
+                break;
+            case 'reload':
+                if (tab) tab.webview.reload();
+                break;
+            case 'view-source':
+                openPageSource(cmd.url);
+                break;
+            case 'inspect':
+                openInspect(cmd.url);
+                break;
+            case 'cut':
+            case 'copy':
+            case 'paste':
+            case 'select-all':
+                try {
+                    if (cmd.cmd === 'cut') document.execCommand('cut');
+                    else if (cmd.cmd === 'copy') document.execCommand('copy');
+                    else if (cmd.cmd === 'select-all') document.execCommand('selectAll');
+                } catch {}
+                break;
+        }
+    }
+
+    // ==========================================
+    // PAGE SOURCE
+    // ==========================================
+    async function openPageSource(url) {
+        if (!url || url === 'about:blank') {
+            alert('Page source not available for this page.');
+            return;
+        }
+        try {
+            window.electronAPI.openPageSource(url);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // ==========================================
+    // INSPECT (DevTools)
+    // ==========================================
+    function openInspect(url) {
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (!tab) return;
+        try {
+            if (tab.webview.isDevToolsOpened && tab.webview.isDevToolsOpened()) {
+                tab.webview.closeDevTools();
+            } else {
+                tab.webview.openDevTools();
+            }
+        } catch (e) {
+            console.error('DevTools error:', e);
+        }
+    }
+
+    // Saytdan gələn context-menu əmrləri (main.js-dən)
+    if (window.electronAPI.onContextMenuCommand) {
+        window.electronAPI.onContextMenuCommand((cmd) => {
+            if (!cmd || !cmd.cmd) return;
+            if (cmd.cmd === 'open-devtools-now') {
+                openInspect(cmd.url);
+                return;
+            }
+            if (cmd.cmd === 'open-url-new-tab' && cmd.url) {
+                createTab(cmd.url);
+                return;
+            }
+            handleContextCommand(cmd);
+        });
+    }
+
+    // Səhifədə (renderer-də) sağ klik — sNET öz səhifələri üçün
+    document.addEventListener('contextmenu', (e) => {
+        const target = e.target;
+        if (target.tagName === 'WEBVIEW') return;
+        e.preventDefault();
+
+        const isEditable = target.matches('input, textarea, [contenteditable="true"], [contenteditable=""]');
+        let linkURL = '';
+        let srcURL = '';
+        let selectionText = '';
+        if (target.closest('a')) linkURL = target.closest('a').href || '';
+        if (target.tagName === 'IMG') srcURL = target.src || '';
+        const sel = window.getSelection();
+        if (sel && sel.toString()) selectionText = sel.toString();
+
+        const params = {
+            linkURL,
+            srcURL,
+            selectionText,
+            pageURL: window.location.href,
+            isEditable,
+            editFlags: { canCut: isEditable, canCopy: !!selectionText, canPaste: isEditable }
+        };
+        openContextMenu(params, e.clientX, e.clientY);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!ctxMenu.contains(e.target)) closeContextMenu();
+    });
+    document.addEventListener('scroll', () => closeContextMenu(), true);
+    window.addEventListener('blur', () => closeContextMenu());
+
+    // ==========================================
+    // SPLIT SCREEN
+    // ==========================================
+    function toggleSplitScreen() { if (splitActive) closeSplitScreen(); else openSplitScreen(); }
+    function openSplitScreen(initialLeftUrl, initialRightUrl) {
+        if (splitActive) return;
+        splitActive = true;
+        splitBtn.classList.add('active');
+        const tab = tabs.find(t => t.id === activeTabId);
+        let leftUrl = initialLeftUrl || '';
+        if (!leftUrl && tab) {
+            try { const cur = tab.webview.getURL(); if (cur && cur !== 'about:blank' && !cur.startsWith('snet:')) leftUrl = cur; } catch {}
+        }
+        if (!leftUrl) leftUrl = 'about:blank';
+        const rightUrl = initialRightUrl || 'about:blank';
+        const splitContainer = document.createElement('div');
+        splitContainer.className = 'split-container active';
+        splitContainer.id = 'split-container';
+        splitContainer.innerHTML = `
+            <div class="split-pane" id="split-pane-left">
+                <div class="split-pane-header">
+                    <button class="split-pane-btn" data-nav="back" data-side="left">‹</button>
+                    <button class="split-pane-btn" data-nav="forward" data-side="left">›</button>
+                    <button class="split-pane-btn" data-nav="reload" data-side="left">⟳</button>
+                    <input class="split-pane-url" id="split-url-left" placeholder="Enter URL..." />
+                    <button class="split-pane-btn close" data-close="left">✕</button>
+                </div>
+                <webview id="split-webview-left" allowpopups src="${leftUrl}"></webview>
+            </div>
+            <div class="split-resizer" id="split-resizer"></div>
+            <div class="split-pane" id="split-pane-right">
+                <div class="split-pane-header">
+                    <button class="split-pane-btn" data-nav="back" data-side="right">‹</button>
+                    <button class="split-pane-btn" data-nav="forward" data-side="right">›</button>
+                    <button class="split-pane-btn" data-nav="reload" data-side="right">⟳</button>
+                    <input class="split-pane-url" id="split-url-right" placeholder="Enter URL..." />
+                    <button class="split-pane-btn close" data-close="right">✕</button>
+                </div>
+                <webview id="split-webview-right" allowpopups src="${rightUrl}"></webview>
+            </div>`;
+        content.appendChild(splitContainer);
+        tabs.forEach(t => t.container.classList.remove('active'));
+        splitPaneLeft = document.getElementById('split-webview-left');
+        splitPaneRight = document.getElementById('split-webview-right');
+        const leftUrlInput = document.getElementById('split-url-left');
+        const rightUrlInput = document.getElementById('split-url-right');
+        if (leftUrl && leftUrl !== 'about:blank') leftUrlInput.value = leftUrl;
+        setTimeout(() => {
+            try {
+                const l = splitPaneLeft.getURL(); if (l && l !== 'about:blank') leftUrlInput.value = l;
+                const r = splitPaneRight.getURL(); if (r && r !== 'about:blank') rightUrlInput.value = r;
+            } catch {}
+        }, 800);
+        const setupInput = (inp, wv) => {
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    let u = inp.value.trim();
+                    if (!u) return;
+                    if (!u.startsWith('http://') && !u.startsWith('https://') && !u.startsWith('file://')) {
+                        if (!u.includes('.') || u.includes(' ')) u = 'https://www.google.com/search?q=' + encodeURIComponent(u);
+                        else u = 'https://' + u;
+                    }
+                    wv.loadURL(u); inp.blur();
+                }
+            });
+            wv.addEventListener('did-navigate', (e) => { inp.value = e.url; });
+        };
+        setupInput(leftUrlInput, splitPaneLeft);
+        setupInput(rightUrlInput, splitPaneRight);
+        splitContainer.querySelectorAll('[data-nav]').forEach(btn => {
+            btn.onclick = () => {
+                const side = btn.dataset.side;
+                const action = btn.dataset.nav;
+                const wv = side === 'left' ? splitPaneLeft : splitPaneRight;
+                try {
+                    if (action === 'back' && wv.canGoBack()) wv.goBack();
+                    if (action === 'forward' && wv.canGoForward()) wv.goForward();
+                    if (action === 'reload') wv.reload();
+                } catch {}
+            };
+        });
+        splitContainer.querySelectorAll('[data-close]').forEach(btn => { btn.onclick = () => closeSplitScreen(); });
+        initSplitResizer();
+        setTimeout(() => applySplitRatio(splitRatio), 50);
+    }
+    function closeSplitScreen() {
+        if (!splitActive) return;
+        splitActive = false;
+        splitBtn.classList.remove('active');
+        const sc = document.getElementById('split-container');
+        if (sc) sc.remove();
+        splitPaneLeft = null; splitPaneRight = null;
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab) tab.container.classList.add('active');
+    }
+    function initSplitResizer() {
+        const resizer = document.getElementById('split-resizer');
+        const container = document.getElementById('split-container');
+        if (!resizer || !container) return;
+        let isDragging = false;
+        resizer.addEventListener('mousedown', (e) => { isDragging = true; document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none'; e.preventDefault(); });
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = container.getBoundingClientRect();
+            let percent = ((e.clientX - rect.left) / rect.width) * 100;
+            percent = Math.max(20, Math.min(80, percent));
+            splitRatio = percent;
+            applySplitRatio(percent);
+        });
+        document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; } });
+    }
+    function applySplitRatio(percent) {
+        const left = document.getElementById('split-pane-left');
+        const right = document.getElementById('split-pane-right');
+        if (!left || !right) return;
+        left.style.flex = `0 0 calc(${percent}% - 3px)`;
+        right.style.flex = `1 1 auto`;
+    }
+    splitBtn.onclick = toggleSplitScreen;
+
+    // ==========================================
+    // Menu
+    // ==========================================
+    document.getElementById('menu').onclick = (e) => { e.stopPropagation(); menuDropdown.classList.toggle('open'); };
+    document.addEventListener('click', (e) => {
+        if (!menuDropdown.contains(e.target) && e.target.id !== 'menu') menuDropdown.classList.remove('open');
+    });
+    menuDropdown.querySelectorAll('.menu-item').forEach(item => {
+        item.onclick = () => {
+            const action = item.dataset.action;
+            menuDropdown.classList.remove('open');
+            if (action === 'new-tab') createTab();
+            else if (action === 'new-incognito') { createTab(NEW_TAB_URL, true); }
+            else if (action === 'new-window') window.electronAPI.openNewWindow(false);
+            else if (action === 'new-incognito-window') window.electronAPI.openNewWindow(true);
+            else if (action === 'split-toggle') toggleSplitScreen();
+            else if (action === 'games') openGames();
+            else if (action === 'adblock') navigateToInternal(ADBLOCK_URL);
+            else if (action === 'extensions') navigateToInternal(EXTENSIONS_URL);
+            else if (action === 'history') navigateToInternal(HISTORY_URL);
+            else if (action === 'downloads') navigateToInternal(DOWNLOADS_URL);
+            else if (action === 'settings') navigateToInternal(SETTINGS_URL);
+            else if (action === 'zoom-in') { const t = tabs.find(t => t.id === activeTabId); if (t) t.webview.setZoomLevel(t.webview.getZoomLevel() + 0.5); }
+            else if (action === 'zoom-out') { const t = tabs.find(t => t.id === activeTabId); if (t) t.webview.setZoomLevel(t.webview.getZoomLevel() - 0.5); }
+            else if (action === 'zoom-reset') { const t = tabs.find(t => t.id === activeTabId); if (t) t.webview.setZoomLevel(0); }
+        };
+    });
+    document.getElementById('downloads-btn').onclick = () => navigateToInternal(DOWNLOADS_URL);
+    document.getElementById('extensions-btn').onclick = (e) => { e.stopPropagation(); navigateToInternal(EXTENSIONS_URL); };
+
+    // ==========================================
+    // Downloads events
+    // ==========================================
+    function updateBadge() {
+        const badge = document.getElementById('downloads-badge');
+        const active = downloads.filter(d => d.state === 'progressing').length;
+        if (active > 0) { badge.textContent = active; badge.classList.remove('hidden'); }
+        else badge.classList.add('hidden');
+    }
+    function showDownloadToast(d) {
+        if (!settings.showDownloadAlert) return;
+        const container = document.getElementById('download-toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'download-toast';
+        toast.innerHTML = `
+            <div class="download-toast-icon">✓</div>
+            <div class="download-toast-info">
+                <div class="download-toast-title">Download completed</div>
+                <div class="download-toast-name">${escapeHtml(d.filename)}</div>
+            </div>
+            <button class="download-toast-close">✕</button>`;
+        container.appendChild(toast);
+        toast.querySelector('.download-toast-close').onclick = () => toast.remove();
+        setTimeout(() => { if (toast.parentElement) toast.remove(); }, 5000);
+    }
+    window.electronAPI.onDownloadStarted((d) => {
+        downloads.unshift({ ...d, state: 'progressing', receivedBytes: 0 });
+        updateBadge();
+        const tab = tabs.find(t => t.id === activeTabId);
+        if (tab && tab.internal === 'downloads') {
+            const pageEl = tab.container.querySelector('.snet-page');
+            if (pageEl) renderDownloadsPageInto(pageEl);
+        }
+    });
+    window.electronAPI.onDownloadUpdated((d) => {
+        const item = downloads.find(x => x.path === d.path);
+        if (item) {
+            item.receivedBytes = d.receivedBytes;
+            item.totalBytes = d.totalBytes;
+            item.state = d.state;
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.internal === 'downloads') {
+                const pageEl = tab.container.querySelector('.snet-page');
+                if (pageEl) renderDownloadsPageInto(pageEl);
+            }
+        }
+    });
+    window.electronAPI.onDownloadDone((d) => {
+        const item = downloads.find(x => x.path === d.path);
+        if (item) {
+            item.state = d.state;
+            item.receivedBytes = d.receivedBytes;
+            updateBadge();
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab && tab.internal === 'downloads') {
+                const pageEl = tab.container.querySelector('.snet-page');
+                if (pageEl) renderDownloadsPageInto(pageEl);
+            }
+            if (d.state === 'completed') showDownloadToast(d);
+        }
+    });
+
+    // ==========================================
+    // Incognito
+    // ==========================================
+    function showIncognitoInfo() {
+        incognitoModal.classList.add('open');
+    }
+    document.getElementById('incognito-close').onclick = () => incognitoModal.classList.remove('open');
+    document.getElementById('incognito-ok').onclick = () => incognitoModal.classList.remove('open');
+    incognitoModal.onclick = (e) => { if (e.target === incognitoModal) incognitoModal.classList.remove('open'); };
+
+    // ==========================================
+    // Keyboard
+    // ==========================================
+    document.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') { e.preventDefault(); toggleSplitScreen(); return; }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'n') { e.preventDefault(); createTab(NEW_TAB_URL, true); return; }
+        if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'i') { e.preventDefault(); window.electronAPI.openNewWindow(true); return; }
+        if (e.ctrlKey && e.key.toLowerCase() === 'u') {
+            e.preventDefault();
+            const tab = tabs.find(t => t.id === activeTabId);
+            if (tab) {
+                let curUrl = '';
+                try { curUrl = tab.webview.getURL(); } catch {}
+                openPageSource(curUrl || tab.url);
+            }
+            return;
+        }
+        if (e.shiftKey && e.key === 'T') { e.preventDefault(); createTab(); }
+        if (e.shiftKey && e.key === 'D') { e.preventDefault(); navigateToInternal(DOWNLOADS_URL); }
+        if (e.shiftKey && e.key === 'H') { e.preventDefault(); navigateToInternal(HISTORY_URL); }
+        if (e.shiftKey && e.key === 'G') { e.preventDefault(); openGames(); }
+        if (e.key === 'Tab' && !e.ctrlKey && !e.altKey) {
+            const a = document.activeElement;
+            const isTyping = a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA');
+            if (!isTyping) { e.preventDefault(); toggleTaskManager(); }
+        }
+        if (e.ctrlKey && e.key === 't') { e.preventDefault(); createTab(); }
+        if (e.ctrlKey && e.key === 'w') { e.preventDefault(); if (activeTabId) closeTab(activeTabId); }
+        if (e.ctrlKey && e.key === 'l') { e.preventDefault(); urlBar.focus(); }
+        if (e.ctrlKey && e.key === 'r') { e.preventDefault(); const t = tabs.find(t => t.id === activeTabId); if (t) t.webview.reload(); }
+        if (e.ctrlKey && e.key === 'j') { e.preventDefault(); navigateToInternal(DOWNLOADS_URL); }
+        if (e.ctrlKey && e.key === 'h') { e.preventDefault(); navigateToInternal(HISTORY_URL); }
+        if (e.ctrlKey && e.key === ',') { e.preventDefault(); navigateToInternal(SETTINGS_URL); }
+        if (e.key === 'Escape') {
+            menuDropdown.classList.remove('open');
+            tmModal.classList.remove('open');
+            shortcutModal.classList.remove('open');
+            renameModal.classList.remove('open');
+            incognitoModal.classList.remove('open');
+            closeContextMenu();
+            closeSplitScreen();
+        }
+    });
+
+    // ==========================================
+    // Resource monitor
+    // ==========================================
+    window.electronAPI.onResourceUpdate((data) => {
+        window._lastResourceData = data;
+        const ramVal = document.getElementById('ram-value');
+        const cpuVal = document.getElementById('cpu-value');
+        const ramDot = document.getElementById('ram-dot');
+        const cpuDot = document.getElementById('cpu-dot');
+        if (ramVal) ramVal.textContent = data.ram + ' MB';
+        if (cpuVal) cpuVal.textContent = data.cpu + '%';
+        if (ramDot) ramDot.style.background = data.ram > 2048 ? 'var(--danger)' : data.ram > 1024 ? 'var(--warning)' : 'var(--success)';
+        if (cpuDot) cpuDot.style.background = data.cpu > 85 ? 'var(--danger)' : data.cpu > 50 ? 'var(--warning)' : 'var(--success)';
+        if (tmModal.classList.contains('open')) updateTaskManager();
+    });
+
+    // ==========================================
+    // Incognito init
+    // ==========================================
+    function initIncognito() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('incognito') === '1') {
+            isIncognitoMode = true;
+            document.body.classList.add('incognito');
+            setTimeout(() => showIncognitoInfo(), 500);
+        }
+    }
+
+    // ==========================================
+    // Start
+    // ==========================================
+    initIncognito();
+    loadSettings().then(() => {
+        if (isIncognitoMode && tabs.length) {
+            tabs.forEach(t => {
+                t.incognito = true;
+                t.tabEl.classList.add('incognito-tab');
+            });
+        }
+    });
+</script>
+</body>
+</html>
