@@ -5,4 +5,11 @@ I did this browser with electron.js and chromeium this was fro only test but thi
 
 
 # Setup for developers
-First we need to install all files of browser (main.js,preload.js,index.html,games.html,games).Then we need to install node.js we can install it from https://nodejs.org then open the installer and download the node.js then download web storm or VS code you can download VS code from microsoft store by searching VS code if oyu want to download better IDE you should open the https://www.jetbrains.com/webstorm/ the install it then open installer then install web storm then open web storm or VS code then create folder in the explorer then drop files to the folder then open this folder in webstorm or VS code then type npx electron . in terminal.Then browser opens automaticly,it may take a few second.For executable .exe file run npm run dist in the terminal of the IDE
+First we need to install all files of browser (main.js,preload.js,index.html,games.html,games).Then we need to install node.js we can install it from https://nodejs.org then open the installer and download the node.js then download web storm or VS code you can download VS code from microsoft store by searching VS code if oyu want to download better IDE you should open the https://www.jetbrains.com/webstorm/ the install it then open installer then install web storm then open web storm or VS code then create folder in the explorer then drop files to the folder then open this folder in webstorm or VS code then type npx electron . in terminal.Then browser opens automaticly,it may take a few second.For executable .exe file run npm run dist in the terminal of the IDE then then executable file will be in the folder of the dist
+
+
+
+
+
+# Important:
+create a games folder in the IDE name it games then add html games 
