@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob: file:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:;" />
+    <title>sNET Games — Offline</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0f0f14;
+            --bg-2: #16161f;
+            --bg-3: #1e1e2a;
+            --bg-4: #26263a;
+            --accent: #7c5cff;
+            --accent-2: #00d4ff;
+            --text: #e8e8f0;
+            --text-dim: #8a8a9a;
+            --border: rgba(255, 255, 255, 0.07);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #e81123;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+            padding: 32px 24px 64px;
+        }
+
+        /* ===== Header ===== */
+        .games-header {
+            max-width: 1200px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .games-title {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .games-subtitle { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+
+        .offline-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-3);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+        }
+        .offline-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+        .offline-dot.online { background: var(--success); animation: none; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* ===== Search ===== */
+        .games-search {
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto 24px;
+            display: block;
+            padding: 12px 20px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s var(--ease);
+        }
+        .games-search:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.15);
+        }
+
+        /* ===== Grid ===== */
+        .games-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 16px;
+        }
+        .game-card {
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.25s var(--ease);
+            display: flex;
+            flex-direction: column;
+        }
+        .game-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(124, 92, 255, 0.5);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ===== Play Icon Thumbnail ===== */
+        .game-thumb {
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-3), var(--bg-4));
+            position: relative;
+            transition: all 0.3s var(--ease);
+        }
+
+        /* Play (Üçbucaq) İkonu */
+        .game-thumb::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 20px 0 20px 35px;
+            border-color: transparent transparent transparent var(--text-dim);
+            margin-left: 8px;
+            transition: all 0.3s var(--ease);
+        }
+
+        .game-card:hover .game-thumb::after {
+            border-color: transparent transparent transparent var(--accent);
+            transform: scale(1.15);
+        }
+
+        .game-info { padding: 10px 14px 14px; }
+        .game-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .empty-results, .loading-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            font-size: 14px;
+        }
+
+        /* ===== Back button ===== */
+        .back-btn {
+            position: fixed;
+            top: 16px; left: 16px;
+            padding: 10px 16px;
+            background: var(--bg-2);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+            z-index: 100;
+        }
+        .back-btn:hover { background: var(--bg-3); border-color: var(--accent); }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--bg-3);
+            border-radius: 10px;
+            border: 2px solid var(--bg);
+        }
+    </style>
+</head>
+<body>
+
+<button class="back-btn" onclick="goBack()">← Back</button>
+
+<div class="games-header">
+    <div>
+        <div class="games-title">🎮 sNET Games</div>
+        <div class="games-subtitle" id="game-count">Loading...</div>
+    </div>
+    <div class="offline-badge">
+        <span class="offline-dot" id="net-dot"></span>
+        <span id="net-label">Offline Mode</span>
+    </div>
+</div>
+
+<input type="text" class="games-search" id="games-search" placeholder="Search games..." autocomplete="off">
+
+<div class="games-grid" id="games-grid">
+    <div class="loading-msg">Loading games...</div>
+</div>
+
+<script>
+    // ===== 48 OYUNUN SİYAHISI =====
+    const ALL_GAMES = [
+        { id: '1.5', name: '1.5' }, { id: '2048', name: '2048' }, { id: 'age-of-war-2', name: 'Age of War 2' },
+        { id: 'angry-birds', name: 'Angry Birds' }, { id: 'angry-birds-space', name: 'Angry Birds Space' },
+        { id: 'bacon-may-die', name: 'Bacon May Die' }, { id: 'crazy-crash-landing', name: 'Crazy Crash Landing' },
+        { id: 'death-chase', name: 'Death Chase' }, { id: 'drive-mad', name: 'Drive Mad' },
+        { id: 'fruit-ninja', name: 'Fruit Ninja' }, { id: 'granny-2', name: 'Granny 2' },
+        { id: 'ragdoll-hit', name: 'Ragdoll Hit' }, { id: 'subway-surfers-san-francisco', name: 'Subway Surfers San Francisco' },
+        { id: '1.8', name: '1.8' }, { id: '2048-cupcakes', name: '2048 Cupcakes' }, { id: 'Alpha_1.2.6', name: 'Alpha 1.2.6' },
+        { id: 'awesome-tanks', name: 'Awesome Tanks' }, { id: 'bad-parenting', name: 'Bad Parenting' },
+        { id: 'crazy-motorcycle', name: 'Crazy Motorcycle' }, { id: 'death-run-3D', name: 'Death Run 3D' },
+        { id: 'earn-to-die', name: 'Earn to Die' }, { id: 'geometry-dash', name: 'Geometry Dash' },
+        { id: 'hill-climb-racing-lite', name: 'Hill Climb Racing Lite' }, { id: 'ragdoll-soccer', name: 'Ragdoll Soccer' },
+        { id: 'worlds-hardest-game', name: 'Worlds Hardest Game' }, { id: '1v1.lol', name: '1v1.lol' },
+        { id: 'age-of-war (1)', name: 'Age of War (1)' }, { id: 'among-us', name: 'Among Us' },
+        { id: 'awesome-tanks-2', name: 'Awesome Tanks 2' }, { id: 'Beta_1.3', name: 'Beta 1.3' },
+        { id: 'crossy-road', name: 'Crossy Road' }, { id: 'drift-boss', name: 'Drift Boss' },
+        { id: 'earn-to-die-2', name: 'Earn to Die 2' }, { id: 'geometry-dash-lite', name: 'Geometry Dash Lite' },
+        { id: 'learn-to-fly-2', name: 'Learn to Fly 2' }, { id: 'sandbox-city', name: 'Sandbox City' },
+        { id: '3D-flight-simulator', name: '3D Flight Simulator' }, { id: 'age-of-war', name: 'Age of War' },
+        { id: 'backrooms', name: 'Backrooms' }, { id: 'chess', name: 'Chess' },
+        { id: 'deadly-descent', name: 'Deadly Descent' }, { id: 'drift-hunters-pro', name: 'Drift Hunters Pro' },
+        { id: 'flappy-bird', name: 'Flappy Bird' }, { id: 'granny', name: 'Granny' },
+        { id: 'learn-to-fly-3', name: 'Learn to Fly 3' }, { id: 'slow-roads', name: 'Slow Roads' }
+    ];
+
+    const grid = document.getElementById('games-grid');
+    const searchInput = document.getElementById('games-search');
+
+    // ===== Internet status =====
+    function updateNetStatus() {
+        const dot = document.getElementById('net-dot');
+        const label = document.getElementById('net-label');
+        if (navigator.onLine) {
+            dot.classList.add('online');
+            label.textContent = 'Online';
+        } else {
+            dot.classList.remove('online');
+            label.textContent = 'Offline Mode';
+        }
+    }
+    window.addEventListener('online', updateNetStatus);
+    window.addEventListener('offline', updateNetStatus);
+    updateNetStatus();
+
+    // ===== Back =====
+    function goBack() {
+        if (history.length > 1) history.back();
+        else window.location.href = 'index.html';
+    }
+
+    // ===== Open game directly (No iframe, no errors) =====
+    function openGame(game) {
+        const encodedId = encodeURIComponent(game.id);
+        window.location.href = `games/${encodedId}.html`;
+    }
+    window.openGame = openGame;
+
+    // ===== Render =====
+    function renderGames(list) {
+        if (!list || !list.length) {
+            grid.innerHTML = '<div class="empty-results">No games found 😕</div>';
+            return;
+        }
+        grid.innerHTML = list.map((g) => `
+            <div class="game-card" onclick='openGame(${JSON.stringify(g)})'>
+                <div class="game-thumb"></div>
+                <div class="game-info">
+                    <div class="game-name" title="${g.name}">${g.name}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function filterGames(query) {
+        const q = query.toLowerCase().trim();
+        if (!q) return renderGames(ALL_GAMES);
+        const filtered = ALL_GAMES.filter(g =>
+            g.name.toLowerCase().includes(q) || g.id.toLowerCase().includes(q)
+        );
+        renderGames(filtered);
+    }
+
+    searchInput.addEventListener('input', e => filterGames(e.target.value));
+
+    // ===== Start =====
+    document.getElementById('game-count').textContent = ALL_GAMES.length + ' games — no internet needed';
+    renderGames(ALL_GAMES);
+</script>
+</body>
+</html>
